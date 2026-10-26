@@ -1,0 +1,2473 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f8b8d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="部品在庫">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>部品在庫</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="format-detection" content="telephone=no">
+<style>
+/* スマホでは全画面のアプリ（上にバー・下にタブ）。広い画面では右にスプレッドシートを並べる */
+:root{
+  --bg:#eef2f6; --surface:#ffffff; --surface-2:#f4f7fa;
+  --ink:#1b2533; --sub:#536177; --mute:#8592a4; --line:#dbe2ea; --line-2:#c4ced9;
+  --accent:#0f8b8d; --accent-ink:#0b6e70; --accent-bg:#e4f4f4; --btn:#0f8b8d; --btn-off:#a9cfd0; --on-btn:#ffffff;
+  --appbar:#0f8b8d; --on-appbar:#ffffff; --appbar-chip:rgba(255,255,255,.2);
+  --in:#16884a; --in-bg:#e9f6ee; --out:#d0640a; --out-bg:#fff2e5; --adj:#7448c4; --adj-bg:#f1ebfb; --cxl:#6b7686; --cxl-bg:#eef1f5; --on-kind:#ffffff;
+  --ok:#16884a; --ok-bg:#e9f6ee; --low:#9a6a00; --low-bg:#fff4d1; --none:#cf2e38; --none-bg:#fdebec;
+  --diff:#d4572a; --diff-bg:#fdeee7; --re:#a86f00; --re-bg:#fff4d6; --todo:#8592a4; --todo-bg:#eef1f5;
+  --hl:#fff0a6; --note-bg:#fffbe8; --note-ln:#f1e0a0; --note-ink:#6f5300; --new-bg:#fff8d6;
+  --cam:#27303c; --cam-ink:#cfd6df; --scanline:#ff4d4f;
+  --sheet:#1e9e5a; --grid-line:#e2e7ee; --grid-head:#f1f4f8; --grid-rn:#f8fafc; --cur-row:#eef8f8;
+  --toast:#1b2533; --on-toast:#ffffff; --overlay:rgba(14,20,30,.5); --shadow:rgba(20,30,45,.16);
+  --qr-ink:#111111; --qr-bg:#ffffff;
+  --font:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP","Yu Gothic","Meiryo",sans-serif;
+  --mono:ui-monospace,"SF Mono","SFMono-Regular",Menlo,Consolas,"Noto Sans Mono CJK JP",monospace;
+  --nav-h:58px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1319; --surface:#171e27; --surface-2:#1e2632;
+  --ink:#e6ebf2; --sub:#a4afc0; --mute:#7b8697; --line:#2a3342; --line-2:#3a4456;
+  --accent:#3cc2c4; --accent-ink:#6fd9da; --accent-bg:#143536; --btn:#11999b; --btn-off:#21494a; --on-btn:#ffffff;
+  --appbar:#0b5f61; --on-appbar:#ffffff; --appbar-chip:rgba(255,255,255,.16);
+  --in:#4cc483; --in-bg:#14301f; --out:#f3994f; --out-bg:#3a2412; --adj:#b597f5; --adj-bg:#2a2045; --cxl:#a4afc0; --cxl-bg:#232b38; --on-kind:#0d1116;
+  --ok:#4cc483; --ok-bg:#14301f; --low:#e8bd4f; --low-bg:#382c0c; --none:#f2737b; --none-bg:#3b1a1d;
+  --diff:#f08a5d; --diff-bg:#3a2016; --re:#e6b54a; --re-bg:#382b0c; --todo:#7b8697; --todo-bg:#232b38;
+  --hl:#5b4c0b; --note-bg:#2b2612; --note-ln:#55491c; --note-ink:#eed58a; --new-bg:#353014;
+  --cam:#0a0d12; --cam-ink:#a4afc0; --scanline:#ff5d5f;
+  --sheet:#3cc47e; --grid-line:#2a3342; --grid-head:#1e2632; --grid-rn:#1a212c; --cur-row:#15292b;
+  --toast:#e6ebf2; --on-toast:#0e1319; --overlay:rgba(0,0,0,.6); --shadow:rgba(0,0,0,.45);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1319; --surface:#171e27; --surface-2:#1e2632;
+  --ink:#e6ebf2; --sub:#a4afc0; --mute:#7b8697; --line:#2a3342; --line-2:#3a4456;
+  --accent:#3cc2c4; --accent-ink:#6fd9da; --accent-bg:#143536; --btn:#11999b; --btn-off:#21494a; --on-btn:#ffffff;
+  --appbar:#0b5f61; --on-appbar:#ffffff; --appbar-chip:rgba(255,255,255,.16);
+  --in:#4cc483; --in-bg:#14301f; --out:#f3994f; --out-bg:#3a2412; --adj:#b597f5; --adj-bg:#2a2045; --cxl:#a4afc0; --cxl-bg:#232b38; --on-kind:#0d1116;
+  --ok:#4cc483; --ok-bg:#14301f; --low:#e8bd4f; --low-bg:#382c0c; --none:#f2737b; --none-bg:#3b1a1d;
+  --diff:#f08a5d; --diff-bg:#3a2016; --re:#e6b54a; --re-bg:#382b0c; --todo:#7b8697; --todo-bg:#232b38;
+  --hl:#5b4c0b; --note-bg:#2b2612; --note-ln:#55491c; --note-ink:#eed58a; --new-bg:#353014;
+  --cam:#0a0d12; --cam-ink:#a4afc0; --scanline:#ff5d5f;
+  --sheet:#3cc47e; --grid-line:#2a3342; --grid-head:#1e2632; --grid-rn:#1a212c; --cur-row:#15292b;
+  --toast:#e6ebf2; --on-toast:#0e1319; --overlay:rgba(0,0,0,.6); --shadow:rgba(0,0,0,.45);
+  color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:30;background:var(--appbar)}
+html.lock, html.lock body{overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+input,select,textarea{font:inherit;color:inherit;font-size:16px} /* 16px未満だとiPhoneで入力時に画面が拡大されるため */
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tn{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono)}
+.nojs{background:var(--note-bg);border:1px solid var(--note-ln);color:var(--note-ink);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700;margin:10px 16px 0}
+[hidden]{display:none!important}
+
+/* ---------- page grid ---------- */
+.app{min-height:100vh;background:var(--bg);position:relative}
+.side{display:none}
+@media (min-width:900px){
+  .page{display:grid;grid-template-columns:420px minmax(0,1fr);gap:24px;max-width:1260px;margin:0 auto;padding:20px 16px 40px;align-items:start}
+  .app{min-height:0;border:1px solid var(--line);border-radius:22px;overflow:clip;box-shadow:0 14px 34px var(--shadow);position:sticky;top:20px;height:calc(100vh - 40px);max-height:900px;display:flex;flex-direction:column}
+  .app .content{flex:1;overflow-y:auto;padding-bottom:20px}
+  .side{display:block;min-width:0}
+}
+
+/* ---------- app bar ---------- */
+.bar{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;background:var(--appbar);color:var(--on-appbar);display:flex;align-items:center;gap:8px;
+  padding-block:10px 12px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(12px, env(safe-area-inset-right, 0px))}
+@media (min-width:900px){.bar{position:static}}
+.bar .tt{flex:1;min-width:0}
+.bar h1{margin:0;font-size:18px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .sub{font-size:11px;opacity:.9;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .chipbtn{border:0;background:var(--appbar-chip);color:var(--on-appbar);border-radius:999px;min-height:36px;padding:0 12px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.bar .chipbtn .av{width:22px;height:22px;border-radius:50%;background:var(--surface);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:12px}
+.bar .off{background:var(--diff);color:var(--on-kind)}
+
+/* ---------- content & nav ---------- */
+.content{padding-top:12px;padding-bottom:calc(var(--nav-h) + 24px + env(safe-area-inset-bottom, 0px));padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--surface);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom, 0px);padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-inset-right, 0px)}
+@media (min-width:900px){.nav{position:static;grid-template-columns:repeat(4,minmax(0,1fr));padding:0}.nav [data-tab="sheet"]{display:none}}
+.nav button{border:0;background:none;min-height:var(--nav-h);font-size:11px;white-space:nowrap;font-weight:700;color:var(--mute);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative}
+.nav button svg{width:24px;height:24px}
+.nav button.on{color:var(--accent-ink)}
+.nav .dot{position:absolute;top:5px;left:calc(50% + 8px);min-width:18px;height:18px;border-radius:9px;background:var(--diff);color:var(--on-kind);font-size:11px;line-height:18px;padding:0 5px}
+
+/* ---------- common parts ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.lbl{font-size:13px;font-weight:700;color:var(--sub);margin:0 0 6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hint{font-size:12px;color:var(--sub);margin-top:6px}
+.sec2{font-size:12px;font-weight:800;color:var(--sub);margin:16px 2px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.notice{background:var(--note-bg);border:1px solid var(--note-ln);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--note-ink);margin-bottom:12px;display:flex;gap:8px;align-items:center}
+.notice b{font-weight:800}
+.notice button{margin-left:auto;flex:none;border:1px solid var(--note-ink);background:none;color:var(--note-ink);border-radius:10px;min-height:36px;padding:0 12px;font-weight:800;font-size:13px}
+.offbar{background:var(--re-bg);color:var(--re);border:1px solid var(--re);border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700;margin-bottom:12px}
+.badge{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:800;white-space:nowrap;line-height:1.6}
+.b-ok{background:var(--ok-bg);color:var(--ok)} .b-low{background:var(--low-bg);color:var(--low)} .b-none{background:var(--none-bg);color:var(--none)}
+.b-todo{background:var(--todo-bg);color:var(--todo)} .b-done{background:var(--ok-bg);color:var(--ok)} .b-diff{background:var(--diff-bg);color:var(--diff)}
+.b-re{background:var(--re-bg);color:var(--re)} .b-okd{background:var(--accent-bg);color:var(--accent-ink)} .b-pend{background:var(--re-bg);color:var(--re)}
+.k{display:inline-block;flex:none;border-radius:7px;color:var(--on-kind);font-size:12px;font-weight:800;padding:1px 8px;white-space:nowrap}
+.k-入庫{background:var(--in)} .k-出庫{background:var(--out)} .k-棚卸調整{background:var(--adj)} .k-取消{background:var(--cxl)}
+.pos{color:var(--in)} .neg{color:var(--out)} .adj{color:var(--adj)} .minus{color:var(--none)} .plus{color:var(--ok)}
+.primary{width:100%;border:0;background:var(--btn);color:var(--on-btn);border-radius:14px;min-height:54px;font-size:17px;font-weight:800;box-shadow:0 4px 10px var(--shadow)}
+.primary:disabled{background:var(--btn-off);box-shadow:none;cursor:not-allowed}
+.ghost{width:100%;border:1px dashed var(--line-2);background:none;border-radius:12px;min-height:44px;font-size:13px;font-weight:700;color:var(--sub);margin-top:10px}
+.btn2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sub-b{border:1px solid var(--line-2);background:var(--surface);border-radius:14px;min-height:54px;font-size:16px;font-weight:800}
+.chips{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.chips button{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;min-height:36px;padding:0 13px;font-size:13px;font-weight:700;color:var(--sub);white-space:nowrap}
+.chips button.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chips button b{font-weight:800;margin-left:3px}
+.shelf{flex:none;font-family:var(--mono);font-size:12px;font-weight:700;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--sub);white-space:nowrap}
+.switch{position:relative;width:51px;height:31px;border-radius:16px;border:0;background:var(--line-2);flex:none}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:var(--surface);transition:left .15s;box-shadow:0 1px 3px var(--shadow)}
+.switch.on{background:var(--ok)} .switch.on::after{left:22px}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:var(--sub);margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.field{display:grid;gap:4px;margin-top:12px}
+.field label{font-size:13px;font-weight:700;color:var(--sub)}
+.field input,.field select{border:1px solid var(--line-2);border-radius:10px;min-height:46px;padding:0 12px;background:var(--surface);min-width:0;width:100%}
+.field2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.lockview{background:var(--surface);border:1px dashed var(--line-2);border-radius:14px;padding:22px 16px;text-align:center;color:var(--sub);font-size:14px;margin-bottom:12px}
+.lockview b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+.lockview button{margin-top:12px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent-ink);border-radius:12px;min-height:44px;padding:0 16px;font-weight:800}
+.choices{display:grid;gap:8px;margin-top:10px}
+.choices button{border:1px solid var(--line-2);background:var(--surface);border-radius:12px;min-height:52px;padding:10px 14px;text-align:left;font-weight:700;font-size:15px}
+.choices button small{display:block;font-weight:500;color:var(--sub);font-size:12px}
+.choices button.on{border-color:var(--accent);background:var(--accent-bg)}
+
+/* ---------- search ---------- */
+.sbox{position:sticky;top:calc(env(safe-area-inset-top, 0px) + var(--bar-h, 64px));z-index:10;background:var(--bg);margin:-12px calc(-1 * max(16px, env(safe-area-inset-left, 0px))) 10px;padding:12px max(16px, env(safe-area-inset-left, 0px)) 8px}
+@media (min-width:900px){.sbox{top:0}}
+.sfield{display:flex;align-items:center;gap:8px;background:var(--surface);border:2px solid var(--accent);border-radius:14px;padding:0 6px 0 12px;min-height:54px}
+.sfield svg.mg{width:22px;height:22px;flex:none;color:var(--mute)}
+.sfield input{flex:1;min-width:0;border:0;background:none;height:50px;font-size:18px;font-weight:700;outline:none;-webkit-appearance:none;appearance:none}
+.sfield input::placeholder{font-weight:500;font-size:15px;color:var(--mute)}
+.sfield input::-webkit-search-cancel-button{display:none}
+.sfield .clr{border:0;background:var(--surface-2);border-radius:50%;width:32px;height:32px;flex:none;font-size:18px;line-height:1;color:var(--sub)}
+.qrbtn{flex:none;border:0;background:var(--btn);color:var(--on-btn);border-radius:10px;min-height:42px;padding:0 12px;font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
+.qrbtn svg{width:20px;height:20px}
+.sfield + .chips{margin-top:10px;margin-bottom:0}
+.rcount{font-size:12px;color:var(--sub);font-weight:700;margin:2px 2px 8px}
+.part{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:8px;width:100%;text-align:left;min-height:68px}
+.part .nm{flex:1;min-width:0}
+.part .pn{display:block;font-family:var(--mono);font-size:16px;font-weight:800;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.part .pn mark,.hrow mark{background:var(--hl);color:inherit;border-radius:3px;padding:0 1px}
+.part .meta{display:block;color:var(--sub);font-size:12px;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.part .meta .old{color:var(--mute)}
+.part .st{flex:none;text-align:right}
+.part .st .q{font-size:24px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.part .st .q small{font-size:12px;color:var(--sub);font-weight:700;margin-left:2px}
+.empty{background:var(--surface);border:1px dashed var(--line-2);border-radius:14px;padding:18px 16px;text-align:center}
+.empty b{display:block;font-size:16px;margin-bottom:4px}
+.empty p{margin:0 0 10px;color:var(--sub);font-size:13px}
+.empty button{border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent-ink);border-radius:12px;min-height:46px;padding:0 16px;font-weight:800;font-size:14px;margin:4px}
+
+/* ---------- detail ---------- */
+.dhead .pn{font-family:var(--mono);font-size:24px;font-weight:800;line-height:1.25;word-break:break-all}
+.dhead .nm{font-size:16px;font-weight:700;margin-top:2px}
+.dhead .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:0 7px;font-size:12px;font-weight:700;color:var(--sub)}
+.stockbox{display:grid;grid-template-columns:1.2fr 1fr;gap:8px;margin:12px 0}
+.stockbox > div{background:var(--surface-2);border-radius:12px;padding:10px 12px}
+.stockbox .k2{font-size:12px;font-weight:700;color:var(--sub)}
+.stockbox .big{font-size:38px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.stockbox .big small{font-size:15px;color:var(--sub);margin-left:3px}
+.stockbox .shelfbig{font-family:var(--mono);font-size:28px;font-weight:800;line-height:1.2}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.facts div{background:var(--surface-2);border-radius:10px;padding:6px 8px;min-width:0}
+.facts small{display:block;font-size:11px;color:var(--sub);font-weight:700}
+.facts b{font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.dacts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.dacts button{border:0;border-radius:14px;min-height:54px;font-size:17px;font-weight:800;color:var(--on-kind)}
+.dacts .a-in{background:var(--in)} .dacts .a-out{background:var(--out)}
+.a-count{width:100%;border:2px solid var(--adj);background:var(--adj-bg);color:var(--adj);border-radius:14px;min-height:50px;font-size:15px;font-weight:800;margin-bottom:8px}
+table.ledger{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+table.ledger th,table.ledger td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table.ledger th:nth-child(-n+2),table.ledger td:nth-child(-n+2){text-align:left}
+table.ledger th{color:var(--sub);font-weight:700;font-size:12px}
+table.ledger td.who{color:var(--sub);font-size:12px}
+table.ledger tr.cx td{color:var(--mute);text-decoration:line-through}
+.qrlabel{display:flex;gap:12px;align-items:center;border:1.5px dashed var(--line-2);border-radius:12px;padding:10px;background:var(--qr-bg);color:#111}
+.qrlabel svg{width:84px;height:84px;flex:none}
+.qrlabel b{display:block;font-family:var(--mono);font-size:17px}
+.qrlabel span{font-size:12px}
+
+/* ---------- in / out ---------- */
+.kinds{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kinds button{border:2px solid;background:var(--surface);border-radius:14px;min-height:56px;font-weight:800;font-size:18px}
+.kinds .k-in{border-color:var(--in);color:var(--in)} .kinds .k-out{border-color:var(--out);color:var(--out)}
+.kinds .k-in.on{background:var(--in);color:var(--on-kind)} .kinds .k-out.on{background:var(--out);color:var(--on-kind)}
+.scanbig{width:100%;border:0;background:var(--btn);color:var(--on-btn);border-radius:14px;min-height:56px;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 10px var(--shadow)}
+.scanbig svg{width:24px;height:24px}
+.or{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:12px;font-weight:700;margin:10px 0}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.pick{display:flex;align-items:center;gap:8px;border:1px solid var(--line-2);border-radius:12px;padding:0 6px 0 12px;background:var(--surface)}
+.pick input{flex:1;min-width:0;border:0;background:none;height:48px;font-size:17px;font-weight:700;outline:none}
+.sugg{margin-top:6px}
+.sugg button{display:flex;align-items:center;gap:10px;width:100%;border:0;border-bottom:1px solid var(--line);background:none;min-height:50px;padding:6px 4px;text-align:left}
+.sugg button:last-child{border-bottom:0}
+.sugg .pn{font-family:var(--mono);font-weight:800;font-size:15px}
+.sugg small{display:block;color:var(--sub);font-size:12px}
+.sugg .q{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chosen{display:flex;gap:10px;align-items:center}
+.chosen .nm{flex:1;min-width:0}
+.chosen .pn{font-family:var(--mono);font-size:18px;font-weight:800;display:block;word-break:break-all}
+.chosen small{display:block;color:var(--sub);font-size:12px}
+.chosen .chg{flex:none;border:1px solid var(--line-2);background:var(--surface-2);border-radius:10px;min-height:40px;padding:0 12px;font-weight:800;font-size:13px}
+.counter{display:flex;align-items:center;gap:10px;margin:6px 0 4px}
+.counter button{width:58px;height:58px;border-radius:14px;border:1px solid var(--line-2);background:var(--surface);font-size:28px;font-weight:800;flex:none}
+.counter input{width:100%;min-width:0;height:58px;text-align:center;font-size:32px;font-weight:800;border:2px solid var(--accent);border-radius:14px;padding:0 8px;background:var(--surface);font-variant-numeric:tabular-nums}
+.unit{flex:none;font-weight:800;color:var(--sub)}
+.preview{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--surface-2);border-radius:10px;padding:8px 12px;margin-top:8px;font-weight:800;font-variant-numeric:tabular-nums}
+.preview .from{color:var(--sub)} .preview .to{font-size:22px}
+.warn{background:var(--none-bg);color:var(--none);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;margin-top:8px}
+.warn label{display:flex;gap:8px;align-items:center;margin-top:6px;font-weight:800;color:var(--ink)}
+.warn input{width:22px;height:22px;accent-color:var(--none);flex:none}
+.memo{width:100%;border:1px solid var(--line-2);border-radius:10px;min-height:46px;padding:0 12px;background:var(--surface)}
+.hrow{display:flex;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.hrow.new{background:var(--new-bg);border-color:var(--note-ln)}
+.hrow .mid{flex:1;min-width:0}
+.hrow .mid b{display:block;font-family:var(--mono);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrow .mid small{display:block;color:var(--mute);font-size:11px;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrow .q{text-align:right;font-weight:800;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hrow .q small{display:block;font-size:11px;font-weight:700;color:var(--sub)}
+.hrow.cx .mid b,.hrow.cx .q{color:var(--mute);text-decoration:line-through}
+.undo{border:1px solid var(--line-2);background:var(--surface-2);border-radius:10px;min-height:36px;padding:0 10px;font-size:12px;font-weight:800;flex:none;color:var(--sub)}
+
+/* ---------- stocktake ---------- */
+.sthead{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.sthead .nm{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.sthead .nm b{font-size:16px}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:11px;font-weight:800;white-space:nowrap}
+.p-run{background:var(--accent-bg);color:var(--accent-ink)} .p-done{background:var(--ok-bg);color:var(--ok)}
+.prog{display:flex;align-items:center;gap:10px;margin-top:8px}
+.pbar{flex:1;height:10px;border-radius:5px;background:var(--todo-bg);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--ok)}
+.prog .n{font-weight:800;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.prog .n small{color:var(--sub);font-weight:700;font-size:12px}
+.stchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.seg3{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg3 button{border:0;background:none;border-radius:9px;min-height:40px;font-size:14px;font-weight:800;color:var(--sub);position:relative}
+.seg3 button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
+.seg3 .dot{display:inline-block;min-width:18px;height:18px;border-radius:9px;background:var(--diff);color:var(--on-kind);font-size:11px;line-height:18px;padding:0 5px;margin-left:4px}
+.crow{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;width:100%;text-align:left;min-height:60px}
+.crow .nm{flex:1;min-width:0}
+.crow .nm b{display:block;font-family:var(--mono);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .nm small{display:block;color:var(--mute);font-size:11px;line-height:1.4}
+.crow .r{flex:none;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.crow .r .q{font-size:18px;line-height:1.2}
+.dcard{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--diff);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.dcard.okd{border-left-color:var(--accent)} .dcard.re{border-left-color:var(--re)}
+.dcard .top{display:flex;gap:8px;align-items:center}
+.dcard .top b{flex:1;min-width:0;font-family:var(--mono);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dline{display:flex;align-items:baseline;gap:8px;margin:6px 0 2px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.dline .bk{color:var(--sub);font-weight:700}
+.dline .ar{color:var(--mute)}
+.dline .ac{font-weight:800;font-size:17px}
+.dline .df{font-weight:800;font-size:18px;margin-left:auto}
+.dmeta{font-size:12px;color:var(--mute)}
+.acts{display:flex;gap:8px;margin-top:8px}
+.acts button{flex:1;border-radius:10px;min-height:44px;font-size:14px;font-weight:800;border:1px solid var(--line-2);background:var(--surface)}
+.acts .a-re{border-color:var(--re);color:var(--re)} .acts .a-ok{border-color:var(--accent);color:var(--accent-ink)}
+.reasons{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.reasons button{border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent-ink);border-radius:999px;min-height:38px;padding:0 12px;font-size:13px;font-weight:800}
+.reasonv{display:inline-block;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:0 6px;font-size:12px;font-weight:700;color:var(--sub);margin-top:4px}
+.check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.check li{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.check .ic{flex:none;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px}
+.check .y .ic{background:var(--ok);color:var(--on-kind)} .check .n .ic{background:var(--todo-bg);border:1px solid var(--line-2)} .check .i .ic{background:var(--re-bg);color:var(--re)}
+.check small{display:block;color:var(--sub);font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
+.kpi .k2{font-size:11px;font-weight:700;color:var(--sub)}
+.kpi .v{font-size:20px;font-weight:800;line-height:1.3;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:12px;font-weight:700;color:var(--sub);margin-left:2px}
+.done-card{background:var(--ok-bg);border:1px solid var(--ok);border-radius:14px;padding:14px;margin-bottom:12px}
+.done-card b{display:block;font-size:16px;color:var(--ok)}
+.hcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.hcard .nm{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hcard .nm b{font-size:15px}
+.hstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px;text-align:center;font-variant-numeric:tabular-nums}
+.hstats div{background:var(--surface-2);border-radius:8px;padding:5px 2px}
+.hstats small{display:block;font-size:10px;color:var(--sub);font-weight:700}
+.hstats b{font-size:14px}
+.areas-pick{display:flex;gap:6px;flex-wrap:wrap}
+.areas-pick button{border:1px solid var(--line-2);background:var(--surface);border-radius:10px;min-height:42px;padding:0 14px;font-weight:800}
+.areas-pick button.on{background:var(--accent);border-color:var(--accent);color:var(--on-btn)}
+
+/* ---------- full-screen layer（スマホではキーボードに隠れないよう上から並べる） ---------- */
+.layer{position:fixed;inset:0;z-index:40;background:var(--overlay);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.pop{background:var(--surface);min-height:100%;padding-top:calc(env(safe-area-inset-top, 0px) + 10px);padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 24px);padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+@media (min-width:600px){.layer{display:flex;align-items:flex-start;justify-content:center;padding:40px 16px}.pop{min-height:0;width:100%;max-width:460px;border-radius:20px;padding:16px 18px 22px}}
+.pophead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pophead .back{border:0;background:var(--surface-2);border-radius:10px;min-height:40px;padding:0 14px;font-weight:800;font-size:14px}
+.pophead .ttl{flex:1;min-width:0;font-weight:800;font-size:13px;color:var(--sub);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pop h4{margin:4px 0 2px;font-size:20px;line-height:1.35}
+.pop .sub{font-size:13px;color:var(--sub)}
+.bk{display:flex;justify-content:space-between;align-items:center;background:var(--surface-2);border-radius:10px;padding:8px 12px;margin:10px 0;font-size:14px}
+.bk b{font-variant-numeric:tabular-nums}
+.bk .hid{color:var(--mute);font-weight:700;font-size:13px}
+.dprev{border-radius:10px;padding:8px 12px;margin-top:8px;font-size:14px;font-weight:700}
+.dprev.d0{background:var(--ok-bg);color:var(--ok)} .dprev.dx{background:var(--diff-bg);color:var(--diff)}
+.reneed{background:var(--re-bg);color:var(--re);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:800;margin-top:8px}
+.zero{border:1px solid var(--line-2);background:var(--surface);border-radius:10px;min-height:36px;padding:0 12px;font-size:13px;font-weight:700;color:var(--sub)}
+.confirm{background:var(--diff-bg);color:var(--diff);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;margin:10px 0}
+.cam{background:var(--cam);border-radius:14px;height:150px;display:flex;align-items:center;justify-content:center;position:relative;margin:10px 0 12px;color:var(--cam-ink);font-size:13px;overflow:hidden}
+.cam::before{content:"";position:absolute;width:108px;height:108px;border:3px solid #fff;border-radius:10px;opacity:.85}
+.cam::after{content:"";position:absolute;width:118px;height:2px;background:var(--scanline);animation:scan 1.6s ease-in-out infinite}
+@keyframes scan{0%,100%{transform:translateY(-44px)}50%{transform:translateY(44px)}}
+.labels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.lab{display:flex;gap:8px;align-items:center;border:1.5px dashed var(--line-2);border-radius:12px;padding:6px 8px;min-height:64px;background:var(--qr-bg);color:#111;text-align:left;min-width:0}
+.lab svg{width:48px;height:48px;flex:none}
+.lab span{min-width:0}
+.lab b{display:block;font-size:12.5px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lab small{font-size:11px;color:#55606e}
+.menu-sec{margin-top:16px}
+.menu-sec h5{margin:0 0 6px;font-size:13px;color:var(--sub)}
+.toast{pointer-events:none;position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 14px);transform:translateX(-50%);background:var(--toast);color:var(--on-toast);border-radius:12px;padding:10px 14px;font-size:14px;font-weight:700;width:max-content;max-width:min(92vw, 420px);text-align:center;z-index:60;opacity:0;transition:opacity .25s}
+.toast.show{opacity:1}
+
+/* ---------- spreadsheet ---------- */
+.intro h2{margin:0;font-size:22px;line-height:1.3;text-wrap:balance}
+.intro small{display:block;font-size:12px;font-weight:700;color:var(--accent-ink);letter-spacing:.04em}
+.intro p{margin:4px 0 12px;color:var(--sub);font-size:13px}
+.ss{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.ss-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.ss-head > div{min-width:0}
+.ss-ic{width:28px;height:28px;border-radius:7px;background:var(--sheet);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.ss-ic svg{width:18px;height:18px}
+.ss-head b{font-size:15px}
+.ss-head small{display:block;font-size:12px;color:var(--sub)}
+.ss-tabs{display:flex;gap:2px;background:var(--grid-head);border-bottom:1px solid var(--line);padding:0 6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ss-tabs button{flex:none;border:0;background:none;min-height:42px;padding:0 12px;font-size:13px;font-weight:700;color:var(--sub);border-bottom:3px solid transparent;white-space:nowrap}
+.ss-tabs button.on{color:var(--sheet);border-bottom-color:var(--sheet);background:var(--surface)}
+.ss-body{max-height:60vh;overflow:auto;-webkit-overflow-scrolling:touch}
+@media (min-width:900px){.ss-body{max-height:560px}}
+table.grid{border-collapse:collapse;font-size:12px;width:100%;min-width:620px;font-variant-numeric:tabular-nums}
+table.grid th,table.grid td{border:1px solid var(--grid-line);padding:5px 8px;white-space:nowrap}
+table.grid thead th{position:sticky;top:0;background:var(--grid-head);font-weight:700;z-index:1}
+table.grid td.n{text-align:right}
+table.grid td.rn{background:var(--grid-rn);color:var(--mute);text-align:center;width:34px}
+table.grid tr.cur td{background:var(--cur-row)}
+table.grid tr.new td{background:var(--new-bg)}
+table.grid td.kk-入庫{color:var(--in);font-weight:800} table.grid td.kk-出庫{color:var(--out);font-weight:800} table.grid td.kk-棚卸調整{color:var(--adj);font-weight:800} table.grid td.kk-取消{color:var(--cxl);font-weight:800} table.grid td.kk-繰越{font-weight:800}
+table.grid td.minus{color:var(--none);font-weight:800} table.grid td.plus{color:var(--ok);font-weight:800}
+table.grid .fx{color:var(--sheet);font-family:var(--mono);font-size:11px}
+.legend{padding:10px 14px;font-size:12px;color:var(--sub);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px 14px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px;border:1px solid var(--line-2)}
+.howto{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:2px 14px}
+.howto summary{cursor:pointer;font-weight:800;font-size:14px;padding:12px 0;min-height:44px}
+.howto .tw{overflow-x:auto;padding-bottom:12px}
+.howto table{border-collapse:collapse;font-size:12px;width:100%;min-width:560px}
+.howto th,.howto td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.howto th{color:var(--sub);font-weight:700;white-space:nowrap}
+.howto code{font-family:var(--mono);font-size:11px;background:var(--surface-2);border-radius:4px;padding:0 4px;word-break:break-all}
+.side .demo{margin-top:12px;background:var(--surface);border:1px dashed var(--line-2);border-radius:14px;padding:12px 14px}
+.side .demo h3{margin:0 0 4px;font-size:14px}
+.side .demo p{margin:0;font-size:12px;color:var(--sub)}
+
+/* ---------- 本番版：設定・ログイン・カメラ ---------- */
+.page.live{grid-template-columns:minmax(0,480px);justify-content:center}
+.page.live .side,.page.gated .side{display:none}
+@media (min-width:900px){.page.gated{grid-template-columns:minmax(0,480px);justify-content:center}}
+.page.gated .bar,.page.gated .nav{display:none}
+.page.gated .content{padding-bottom:40px}
+.gate{min-height:calc(100vh - 40px);display:flex;align-items:flex-start;justify-content:center;padding-top:6vh}
+.gate-in{width:100%;max-width:420px;text-align:center}
+.gate-in .logo{width:64px;height:64px;border-radius:18px;background:var(--appbar);color:var(--on-appbar);display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.gate-in .logo svg{width:34px;height:34px}
+.gate-in h2{margin:0 0 6px;font-size:24px}
+.gate-in p{color:var(--sub);font-size:14px;margin:6px 0 14px;text-align:left}
+.gate-in .choices{text-align:left}
+.gate-in .primary{display:flex;align-items:center;justify-content:center;gap:8px}.gate-in .primary svg{width:22px;height:22px}.gate-in p.small{font-size:12px;color:var(--mute,var(--sub))}
+.manual:not([open]){padding-bottom:2px}
+.manual{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 14px 14px;margin:8px 0}
+.manual summary{cursor:pointer;font-weight:800;font-size:14px;padding:10px 0;min-height:44px}
+.pinshow{font-size:28px;letter-spacing:.3em;font-weight:800;min-height:46px;margin:6px 0 12px;color:var(--ink)}
+.pinshow span{font-size:13px;letter-spacing:0;color:var(--mute);font-weight:500}
+.pinpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:0 auto}
+.pinpad button{min-height:62px;border-radius:16px;border:1px solid var(--line-2);background:var(--surface);font-size:24px;font-weight:800}
+.pinpad button[data-pin="del"]{font-size:15px;color:var(--sub)}
+.pinpad button.ok{background:var(--btn);color:var(--on-btn);border-color:var(--btn);font-size:18px}
+.pinpad button:disabled{opacity:.4}
+.bar .chipbtn .nm{max-width:6em;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:360px){.bar .chipbtn .nm{display:none}}
+.camwrap{position:relative;background:#000;border-radius:16px;overflow:hidden;aspect-ratio:1/1;max-height:62vh;margin:4px auto 0;width:100%}
+.camwrap video{width:100%;height:100%;object-fit:cover;display:block}
+.camwrap .guide{position:absolute;inset:12%;border:3px solid rgba(255,255,255,.9);border-radius:16px;box-shadow:0 0 0 2000px rgba(0,0,0,.25);pointer-events:none}
+.camwrap .guide::after{content:"";position:absolute;left:6%;right:6%;height:2px;background:var(--scanline);top:50%;animation:scanline 1.8s ease-in-out infinite}
+@keyframes scanline{0%,100%{transform:translateY(-110px)}50%{transform:translateY(110px)}}
+.camwrap .cammsg{position:absolute;left:0;right:0;bottom:10px;text-align:center;color:#fff;font-size:13px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.8);padding:0 12px}
+.camwrap.nocam{aspect-ratio:auto;min-height:120px;display:flex;align-items:center;justify-content:center;background:var(--cam)}
+.camwrap.nocam video,.camwrap.nocam .guide{display:none}
+.camwrap.nocam .cammsg{position:static;color:var(--cam-ink);text-shadow:none;padding:16px}
+.torch{position:absolute;top:10px;right:10px;border:0;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;min-height:40px;padding:0 12px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px}
+.torch svg{width:18px;height:18px}
+.torch.on{background:#ffd54a;color:#111}
+.linkbtn{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.page.gated ~ .toast{bottom:auto;top:calc(env(safe-area-inset-top, 0px) + 16px)}
+
+@media (max-width:360px){.acts button{font-size:12.5px}.bar .chipbtn{padding:0 10px}.part .st .q{font-size:21px}.qrbtn span{display:none}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<p class="nojs" id="nojs">この表示では動きません。SafariやChromeなどのブラウザで開いてください。</p>
+<div class="page" id="page">
+  <div class="app" id="app">
+    <header class="bar" id="bar"></header>
+    <main class="content" id="content"></main>
+    <nav class="nav" id="nav" aria-label="画面の切り替え"></nav>
+  </div>
+  <aside class="side" id="side">
+    <div class="intro"><small>部品在庫｜スプレッドシート＋スマホ（無料の構成）</small><h2>部品在庫アプリ</h2>
+      <p>左のアプリで入力すると、右のスプレッドシートに1行ずつ増えます。いまはデモ（サンプルのデータ）です。スマホでは、アプリだけが全画面で表示されます。</p></div>
+    <div id="ssPanel"></div>
+    <div class="demo"><h3>試してみる順番の例</h3><p>① 検索に「1020011030」「ab1203」「10200-11003（旧品番）」を打つ　② 入出庫でQRを読んで出庫（デモはラベルをタップ）　③ 履歴から取り消す　④ 棚卸でB棚を数える → 差異確認 → 確定。ログインの切り替え・圏外・最初に戻すは、右上の名前ボタンから。</p></div>
+  </aside>
+</div>
+<div class="layer" id="layer" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>(function () { var n = document.getElementById('nojs'); if (n) n.remove(); })();</script>
+<script>
+/* ---------- QRコード生成（バイトモード・誤り訂正L/M/Q/H（標準はM）・型番1〜10）。外部ライブラリなしで本物のQRを作る ---------- */
+const QR = (() => {
+  // 型番1〜10 × 誤り訂正 L/M/Q/H：[ブロックごとの訂正語数, [[ブロック数, データ語数], ...]]
+  const TABLE = [null,
+    { L: [7, [[1, 19]]], M: [10, [[1, 16]]], Q: [13, [[1, 13]]], H: [17, [[1, 9]]] },
+    { L: [10, [[1, 34]]], M: [16, [[1, 28]]], Q: [22, [[1, 22]]], H: [28, [[1, 16]]] },
+    { L: [15, [[1, 55]]], M: [26, [[1, 44]]], Q: [18, [[2, 17]]], H: [22, [[2, 13]]] },
+    { L: [20, [[1, 80]]], M: [18, [[2, 32]]], Q: [26, [[2, 24]]], H: [16, [[4, 9]]] },
+    { L: [26, [[1, 108]]], M: [24, [[2, 43]]], Q: [18, [[2, 15], [2, 16]]], H: [22, [[2, 11], [2, 12]]] },
+    { L: [18, [[2, 68]]], M: [16, [[4, 27]]], Q: [24, [[4, 19]]], H: [28, [[4, 15]]] },
+    { L: [20, [[2, 78]]], M: [18, [[4, 31]]], Q: [18, [[2, 14], [4, 15]]], H: [26, [[4, 13], [1, 14]]] },
+    { L: [24, [[2, 97]]], M: [22, [[2, 38], [2, 39]]], Q: [22, [[4, 18], [2, 19]]], H: [26, [[4, 14], [2, 15]]] },
+    { L: [30, [[2, 116]]], M: [22, [[3, 36], [2, 37]]], Q: [20, [[4, 16], [4, 17]]], H: [24, [[4, 12], [4, 13]]] },
+    { L: [18, [[2, 68], [2, 69]]], M: [26, [[4, 43], [1, 44]]], Q: [24, [[6, 19], [2, 20]]], H: [28, [[6, 15], [2, 16]]] },
+  ];
+  const ECL_BITS = { L: 1, M: 0, Q: 3, H: 2 };
+  const ALIGN = [[], [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
+
+  function gfMul(x, y) {
+    let z = 0;
+    for (let i = 7; i >= 0; i--) { z = (z << 1) ^ ((z >>> 7) * 0x11D); z ^= ((y >>> i) & 1) * x; }
+    return z & 0xFF;
+  }
+  function rsDivisor(degree) {
+    const r = new Array(degree).fill(0); r[degree - 1] = 1;
+    let root = 1;
+    for (let i = 0; i < degree; i++) {
+      for (let j = 0; j < r.length; j++) { r[j] = gfMul(r[j], root); if (j + 1 < r.length) r[j] ^= r[j + 1]; }
+      root = gfMul(root, 0x02);
+    }
+    return r;
+  }
+  function rsRemainder(data, div) {
+    const r = div.map(() => 0);
+    for (const b of data) {
+      const f = b ^ r.shift(); r.push(0);
+      div.forEach((c, i) => { r[i] ^= gfMul(c, f); });
+    }
+    return r;
+  }
+  function utf8(text) {
+    const out = [];
+    for (const ch of String(text)) {
+      let c = ch.codePointAt(0);
+      if (c < 0x80) out.push(c);
+      else if (c < 0x800) out.push(0xC0 | (c >> 6), 0x80 | (c & 63));
+      else if (c < 0x10000) out.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+      else out.push(0xF0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    }
+    return out;
+  }
+  const dataCap = (v, e) => TABLE[v][e][1].reduce((a, [n, d]) => a + n * d, 0);
+
+  function encode(text, ecl = 'M', minVersion = 1) {
+    const bytes = utf8(text);
+    let ver = Math.max(1, Math.min(10, minVersion));
+    for (; ver <= 10; ver++) {
+      const ccBits = ver < 10 ? 8 : 16;
+      if (4 + ccBits + bytes.length * 8 <= dataCap(ver, ecl) * 8) break;
+    }
+    if (ver > 10) throw new Error('QR: 文字が長すぎます');
+    // ---- bit stream
+    const bits = [];
+    const put = (val, len) => { for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1); };
+    put(4, 4); put(bytes.length, ver < 10 ? 8 : 16); bytes.forEach(b => put(b, 8));
+    const capBits = dataCap(ver, ecl) * 8;
+    put(0, Math.min(4, capBits - bits.length));
+    while (bits.length % 8) bits.push(0);
+    const data = [];
+    for (let i = 0; i < bits.length; i += 8) data.push(bits.slice(i, i + 8).reduce((a, b) => (a << 1) | b, 0));
+    for (let p = 0xEC; data.length < dataCap(ver, ecl); p ^= 0xEC ^ 0x11) data.push(p);
+    // ---- error correction + interleave
+    const [ecl_n, groups] = TABLE[ver][ecl], div = rsDivisor(ecl_n), blocks = [];
+    let k = 0;
+    groups.forEach(([n, d]) => { for (let i = 0; i < n; i++) { const dat = data.slice(k, k + d); k += d; blocks.push({ dat, ecc: rsRemainder(dat, div) }); } });
+    const cw = [], maxD = Math.max(...blocks.map(x => x.dat.length));
+    for (let i = 0; i < maxD; i++) blocks.forEach(x => { if (i < x.dat.length) cw.push(x.dat[i]); });
+    for (let i = 0; i < ecl_n; i++) blocks.forEach(x => cw.push(x.ecc[i]));
+    // ---- matrix
+    const size = ver * 4 + 17;
+    const mod = Array.from({ length: size }, () => new Array(size).fill(false));
+    const fn = Array.from({ length: size }, () => new Array(size).fill(false));
+    const setF = (x, y, d) => { mod[y][x] = d; fn[y][x] = true; };
+    for (let i = 0; i < size; i++) { setF(6, i, i % 2 === 0); setF(i, 6, i % 2 === 0); }
+    const finder = (cx, cy) => {
+      for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
+        const x = cx + dx, y = cy + dy;
+        if (x < 0 || y < 0 || x >= size || y >= size) continue;
+        const d = Math.max(Math.abs(dx), Math.abs(dy));
+        setF(x, y, d !== 2 && d !== 4);
+      }
+    };
+    finder(3, 3); finder(size - 4, 3); finder(3, size - 4);
+    const al = ALIGN[ver], last = al.length - 1;
+    al.forEach((ay, i) => al.forEach((ax, j) => {
+      if ((i === 0 && j === 0) || (i === 0 && j === last) || (i === last && j === 0)) return;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) setF(ax + dx, ay + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+    }));
+    const drawFormat = mask => {
+      const d = (ECL_BITS[ecl] << 3) | mask;
+      let rem = d;
+      for (let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+      const b = ((d << 10) | rem) ^ 0x5412, g = i => ((b >>> i) & 1) === 1;
+      for (let i = 0; i <= 5; i++) setF(8, i, g(i));
+      setF(8, 7, g(6)); setF(8, 8, g(7)); setF(7, 8, g(8));
+      for (let i = 9; i < 15; i++) setF(14 - i, 8, g(i));
+      for (let i = 0; i < 8; i++) setF(size - 1 - i, 8, g(i));
+      for (let i = 8; i < 15; i++) setF(8, size - 15 + i, g(i));
+      setF(8, size - 8, true);
+    };
+    drawFormat(0);
+    if (ver >= 7) {
+      let rem = ver;
+      for (let i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1F25);
+      const b = (ver << 12) | rem;
+      for (let i = 0; i < 18; i++) {
+        const c = ((b >>> i) & 1) === 1, a = size - 11 + i % 3, bb = Math.floor(i / 3);
+        setF(a, bb, c); setF(bb, a, c);
+      }
+    }
+    // ---- place codewords (zigzag)
+    let bi = 0;
+    for (let right = size - 1; right >= 1; right -= 2) {
+      if (right === 6) right = 5;
+      for (let v = 0; v < size; v++) for (let j = 0; j < 2; j++) {
+        const x = right - j, up = ((right + 1) & 2) === 0, y = up ? size - 1 - v : v;
+        if (!fn[y][x] && bi < cw.length * 8) { mod[y][x] = ((cw[bi >>> 3] >>> (7 - (bi & 7))) & 1) === 1; bi++; }
+      }
+    }
+    // ---- choose mask with the lowest penalty
+    const maskFn = [
+      (x, y) => (x + y) % 2 === 0, (x, y) => y % 2 === 0, (x, y) => x % 3 === 0, (x, y) => (x + y) % 3 === 0,
+      (x, y) => (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0, (x, y) => x * y % 2 + x * y % 3 === 0,
+      (x, y) => (x * y % 2 + x * y % 3) % 2 === 0, (x, y) => ((x + y) % 2 + x * y % 3) % 2 === 0];
+    const applyMask = m => { for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (!fn[y][x] && maskFn[m](x, y)) mod[y][x] = !mod[y][x]; };
+    const penalty = () => {
+      let p = 0;
+      const line = get => {
+        let run = 1, s = 0, prev = get(0);
+        for (let i = 1; i < size; i++) { const c = get(i); if (c === prev) { run++; if (run === 5) s += 3; else if (run > 5) s++; } else { run = 1; prev = c; } }
+        const str = Array.from({ length: size }, (_, i) => get(i) ? '1' : '0').join('');
+        for (let i = 0; i + 7 <= size; i++) if (str.substr(i, 7) === '1011101') {
+          const before = str.substr(Math.max(0, i - 4), Math.min(4, i)), after = str.substr(i + 7, 4);
+          if ((i < 4 || before === '0000') || (i + 11 > size || after === '0000')) s += 40;
+        }
+        return s;
+      };
+      for (let y = 0; y < size; y++) p += line(i => mod[y][i]);
+      for (let x = 0; x < size; x++) p += line(i => mod[i][x]);
+      for (let y = 0; y < size - 1; y++) for (let x = 0; x < size - 1; x++) {
+        const c = mod[y][x]; if (c === mod[y][x + 1] && c === mod[y + 1][x] && c === mod[y + 1][x + 1]) p += 3;
+      }
+      let dark = 0; mod.forEach(r => r.forEach(c => { if (c) dark++; }));
+      p += Math.floor(Math.abs(dark * 20 - size * size * 10) / (size * size)) * 10;
+      return p;
+    };
+    let best = 0, bestP = Infinity;
+    for (let m = 0; m < 8; m++) {
+      applyMask(m); drawFormat(m);
+      const pn = penalty(); if (pn < bestP) { bestP = pn; best = m; }
+      applyMask(m);
+    }
+    applyMask(best); drawFormat(best);
+    return { size, modules: mod, version: ver, mask: best, ecl };
+  }
+
+  // SVG（横に続く黒をまとめて1本のパスに）。margin は白い余白（モジュール数）
+  function svg(text, opt = {}) {
+    const { margin = 4, dark = '#000', light = '#fff', cls = '', label = '', ecl = 'M', minVersion = 1 } = opt;
+    const q = encode(text, ecl, minVersion), n = q.size + margin * 2;
+    let d = '';
+    q.modules.forEach((row, y) => {
+      for (let x = 0; x < q.size; x++) {
+        if (!row[x]) continue;
+        let w = 1; while (x + w < q.size && row[x + w]) w++;
+        d += `M${x + margin} ${y + margin}h${w}v1h-${w}z`; x += w - 1;
+      }
+    });
+    return `<svg ${cls ? `class="${cls}" ` : ''}viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" role="img" aria-label="${label || 'QRコード'}"><rect width="${n}" height="${n}" fill="${light}"/><path d="${d}" fill="${dark}"/></svg>`;
+  }
+  return { encode, svg };
+})();
+if (typeof module !== 'undefined') module.exports = QR;
+
+</script>
+<script id="qrdecode-src">
+/* ---------- QRコード読み取り（カメラの画像から）。外部ライブラリなし ----------
+ * 対応：型番1〜10（部品ラベルには十分）、誤り訂正 L/M/Q/H、数字・英数字・バイト（UTF-8／Shift_JIS）・漢字モード
+ * 手順：明るさで白黒に分ける → 3つの角の目印（ファインダ）を探す → 右下の小さな目印で傾きを補正
+ *       → 升目を読み取る → 形式情報 → マスクを外す → 誤り訂正（リード・ソロモン）→ 文字に戻す */
+const QRDecode = (() => {
+  const TABLE = [null,
+    { L: [7, [[1, 19]]], M: [10, [[1, 16]]], Q: [13, [[1, 13]]], H: [17, [[1, 9]]] },
+    { L: [10, [[1, 34]]], M: [16, [[1, 28]]], Q: [22, [[1, 22]]], H: [28, [[1, 16]]] },
+    { L: [15, [[1, 55]]], M: [26, [[1, 44]]], Q: [18, [[2, 17]]], H: [22, [[2, 13]]] },
+    { L: [20, [[1, 80]]], M: [18, [[2, 32]]], Q: [26, [[2, 24]]], H: [16, [[4, 9]]] },
+    { L: [26, [[1, 108]]], M: [24, [[2, 43]]], Q: [18, [[2, 15], [2, 16]]], H: [22, [[2, 11], [2, 12]]] },
+    { L: [18, [[2, 68]]], M: [16, [[4, 27]]], Q: [24, [[4, 19]]], H: [28, [[4, 15]]] },
+    { L: [20, [[2, 78]]], M: [18, [[4, 31]]], Q: [18, [[2, 14], [4, 15]]], H: [26, [[4, 13], [1, 14]]] },
+    { L: [24, [[2, 97]]], M: [22, [[2, 38], [2, 39]]], Q: [22, [[4, 18], [2, 19]]], H: [26, [[4, 14], [2, 15]]] },
+    { L: [30, [[2, 116]]], M: [22, [[3, 36], [2, 37]]], Q: [20, [[4, 16], [4, 17]]], H: [24, [[4, 12], [4, 13]]] },
+    { L: [18, [[2, 68], [2, 69]]], M: [26, [[4, 43], [1, 44]]], Q: [24, [[6, 19], [2, 20]]], H: [28, [[6, 15], [2, 16]]] },
+  ];
+  const ALIGN = [[], [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
+  const ECL_OF = ['M', 'L', 'H', 'Q']; // 形式情報の2ビット → レベル
+  const MAX_VER = 10;
+
+  /* ---------- GF(256) とリード・ソロモン復号 ---------- */
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  (() => { let x = 1; for (let i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11D; } for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255]; })();
+  const mul = (a, b) => (a && b) ? EXP[LOG[a] + LOG[b]] : 0;
+  const div = (a, b) => a ? EXP[(LOG[a] + 255 - LOG[b]) % 255] : 0;
+  const powA = (e) => EXP[((e % 255) + 255) % 255];
+  function syndromes(msg, nsym) {
+    const s = new Array(nsym); let any = false;
+    for (let i = 0; i < nsym; i++) {
+      let v = 0; const a = EXP[i];
+      for (let j = 0; j < msg.length; j++) v = mul(v, a) ^ msg[j];
+      s[i] = v; if (v) any = true;
+    }
+    return any ? s : null;
+  }
+  function rsCorrect(msg, nsym) {
+    const synd = syndromes(msg, nsym);
+    if (!synd) return msg.slice();
+    let C = [1], B = [1], L = 0, m = 1, b = 1;
+    for (let r = 0; r < nsym; r++) {
+      let d = synd[r];
+      for (let i = 1; i <= L; i++) d ^= mul(C[i] || 0, synd[r - i]);
+      if (!d) { m++; continue; }
+      const T = C.slice(), coef = div(d, b);
+      for (let i = 0; i < B.length; i++) { const k = i + m; while (C.length <= k) C.push(0); C[k] ^= mul(coef, B[i]); }
+      if (2 * L <= r) { L = r + 1 - L; B = T; b = d; m = 1; } else m++;
+    }
+    while (C.length > 1 && !C[C.length - 1]) C.pop();
+    const nerr = C.length - 1, n = msg.length;
+    if (nerr !== L || 2 * nerr > nsym) return null;
+    const pos = [];
+    for (let p = 0; p < n; p++) {
+      const xinv = powA(-p); let v = 0, xp = 1;
+      for (let i = 0; i < C.length; i++) { v ^= mul(C[i], xp); xp = mul(xp, xinv); }
+      if (!v) pos.push(p);
+    }
+    if (pos.length !== nerr) return null;
+    const omega = new Array(nsym).fill(0);
+    for (let i = 0; i < nsym; i++) for (let j = 0; j < C.length && i + j < nsym; j++) omega[i + j] ^= mul(synd[i], C[j]);
+    const out = msg.slice();
+    for (const p of pos) {
+      const X = powA(p), Xinv = powA(-p);
+      let om = 0, xp = 1;
+      for (let i = 0; i < nsym; i++) { om ^= mul(omega[i], xp); xp = mul(xp, Xinv); }
+      let dl = 0;
+      for (let i = 1; i < C.length; i += 2) dl ^= mul(C[i], i === 1 ? 1 : powA(LOG[Xinv] * (i - 1)));
+      if (!dl) return null;
+      out[n - 1 - p] ^= mul(X, div(om, dl));
+    }
+    return syndromes(out, nsym) ? null : out;
+  }
+
+  /* ---------- 升目（true＝黒）から文字へ ---------- */
+  function functionMask(ver) {
+    const size = 17 + 4 * ver, f = Array.from({ length: size }, () => new Uint8Array(size));
+    const set = (x, y) => { if (x >= 0 && y >= 0 && x < size && y < size) f[y][x] = 1; };
+    for (let y = 0; y < 9; y++) for (let x = 0; x < 9; x++) set(x, y);
+    for (let y = 0; y < 9; y++) for (let x = size - 8; x < size; x++) set(x, y);
+    for (let y = size - 8; y < size; y++) for (let x = 0; x < 9; x++) set(x, y);
+    for (let i = 0; i < size; i++) { set(6, i); set(i, 6); }
+    const al = ALIGN[ver], last = al.length - 1;
+    al.forEach((ay, i) => al.forEach((ax, j) => {
+      if ((i === 0 && j === 0) || (i === 0 && j === last) || (i === last && j === 0)) return;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) set(ax + dx, ay + dy);
+    }));
+    if (ver >= 7) for (let i = 0; i < 6; i++) for (let j = 0; j < 3; j++) { set(size - 11 + j, i); set(i, size - 11 + j); }
+    return f;
+  }
+  const FORMATS = (() => {
+    const list = [];
+    for (let d = 0; d < 32; d++) {
+      let rem = d; for (let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+      list.push({ d, code: ((d << 10) | (rem & 0x3FF)) ^ 0x5412 });
+    }
+    return list;
+  })();
+  const hamming = (a, b) => { let x = a ^ b, c = 0; while (x) { c += x & 1; x >>>= 1; } return c; };
+  const MASKS = [
+    (x, y) => (x + y) % 2 === 0, (x, y) => y % 2 === 0, (x, y) => x % 3 === 0, (x, y) => (x + y) % 3 === 0,
+    (x, y) => (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0, (x, y) => x * y % 2 + x * y % 3 === 0,
+    (x, y) => (x * y % 2 + x * y % 3) % 2 === 0, (x, y) => ((x + y) % 2 + x * y % 3) % 2 === 0];
+
+  function readFormat(m) {
+    const size = m.length, g = (x, y) => m[y][x] ? 1 : 0;
+    let a = 0, b = 0;
+    for (let i = 0; i <= 5; i++) a |= g(8, i) << i;
+    a |= g(8, 7) << 6; a |= g(8, 8) << 7; a |= g(7, 8) << 8;
+    for (let i = 9; i < 15; i++) a |= g(14 - i, 8) << i;
+    for (let i = 0; i < 8; i++) b |= g(size - 1 - i, 8) << i;
+    for (let i = 8; i < 15; i++) b |= g(8, size - 15 + i) << i;
+    let best = null, bd = 99;
+    for (const f of FORMATS) for (const v of [a, b]) { const h = hamming(f.code, v); if (h < bd) { bd = h; best = f; } }
+    return bd <= 3 ? { ecl: ECL_OF[best.d >> 3], mask: best.d & 7 } : null;
+  }
+
+  function decodeMatrix(m) {
+    const size = m.length, ver = (size - 17) / 4;
+    if (!Number.isInteger(ver) || ver < 1 || ver > MAX_VER) return null;
+    const fmt = readFormat(m); if (!fmt) return null;
+    const fn = functionMask(ver), mk = MASKS[fmt.mask];
+    const [ecn, groups] = TABLE[ver][fmt.ecl];
+    const blocks = [];
+    groups.forEach(([n, d]) => { for (let i = 0; i < n; i++) blocks.push({ d, data: [], ec: [] }); });
+    const total = blocks.reduce((a, x) => a + x.d + ecn, 0);
+    const bytes = []; let cur = 0, nb = 0;
+    for (let right = size - 1; right >= 1; right -= 2) {
+      if (right === 6) right = 5;
+      for (let v = 0; v < size; v++) for (let j = 0; j < 2; j++) {
+        const x = right - j, up = ((right + 1) & 2) === 0, y = up ? size - 1 - v : v;
+        if (fn[y][x] || bytes.length >= total) continue;
+        const bit = (m[y][x] ? 1 : 0) ^ (mk(x, y) ? 1 : 0);
+        cur = (cur << 1) | bit; nb++;
+        if (nb === 8) { bytes.push(cur); cur = 0; nb = 0; }
+      }
+    }
+    if (bytes.length < total) return null;
+    let k = 0;
+    const maxD = Math.max(...blocks.map(x => x.d));
+    for (let i = 0; i < maxD; i++) blocks.forEach(x => { if (i < x.d) x.data.push(bytes[k++]); });
+    for (let i = 0; i < ecn; i++) blocks.forEach(x => x.ec.push(bytes[k++]));
+    const data = [];
+    for (const x of blocks) {
+      const fixed = rsCorrect(x.data.concat(x.ec), ecn);
+      if (!fixed) return null;
+      for (let i = 0; i < x.d; i++) data.push(fixed[i]);
+    }
+    const text = parseData(data, ver);
+    return text === null ? null : { text, version: ver, ecl: fmt.ecl };
+  }
+
+  function decodeBytes(arr, eci) {
+    const u8 = new Uint8Array(arr);
+    if (typeof TextDecoder !== 'undefined') {
+      if (eci === 20) { try { return new TextDecoder('shift_jis').decode(u8); } catch (_) {} }
+      try { return new TextDecoder('utf-8', { fatal: true }).decode(u8); } catch (_) {}
+      try { return new TextDecoder('shift_jis', { fatal: true }).decode(u8); } catch (_) {}
+    }
+    return arr.map(c => String.fromCharCode(c)).join('');
+  }
+  function parseData(bytes, ver) {
+    let bit = 0; const total = bytes.length * 8;
+    const read = n => { let v = 0; for (let i = 0; i < n; i++) { v = (v << 1) | ((bytes[bit >> 3] >> (7 - (bit & 7))) & 1); bit++; } return v; };
+    const AN = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
+    let out = '', eci = null;
+    while (bit + 4 <= total) {
+      const mode = read(4);
+      if (mode === 0) break;
+      if (mode === 1) {
+        let n = read(ver < 10 ? 10 : 12);
+        while (n >= 3) { if (bit + 10 > total) return null; out += String(read(10)).padStart(3, '0'); n -= 3; }
+        if (n === 2) out += String(read(7)).padStart(2, '0'); else if (n === 1) out += String(read(4));
+      } else if (mode === 2) {
+        let n = read(ver < 10 ? 9 : 11);
+        while (n >= 2) { if (bit + 11 > total) return null; const v = read(11); out += AN[Math.floor(v / 45)] + AN[v % 45]; n -= 2; }
+        if (n === 1) out += AN[read(6)];
+      } else if (mode === 4) {
+        const n = read(ver < 10 ? 8 : 16); if (bit + n * 8 > total) return null;
+        const arr = []; for (let i = 0; i < n; i++) arr.push(read(8));
+        out += decodeBytes(arr, eci);
+      } else if (mode === 8) {
+        const n = read(ver < 10 ? 8 : 10); if (bit + n * 13 > total) return null;
+        const arr = [];
+        for (let i = 0; i < n; i++) { const v = read(13); let a = (Math.floor(v / 0xC0) << 8) | (v % 0xC0); a += a < 0x1F00 ? 0x8140 : 0xC140; arr.push(a >> 8, a & 0xFF); }
+        out += decodeBytes(arr, 20);
+      } else if (mode === 7) {
+        const v = read(8);
+        eci = (v & 0x80) === 0 ? v : (v & 0xC0) === 0x80 ? ((v & 0x3F) << 8) | read(8) : ((v & 0x1F) << 16) | read(16);
+      } else if (mode === 3) { read(16); }
+      else if (mode === 5) { /* FNC1 */ }
+      else if (mode === 9) { read(8); }
+      else break;
+    }
+    return out;
+  }
+
+  /* ---------- 画像 → 白黒 ---------- */
+  function toGray(img) {
+    const { data, width: w, height: h } = img, g = new Uint8Array(w * h);
+    for (let i = 0, j = 0; i < g.length; i++, j += 4) g[i] = (data[j] * 77 + data[j + 1] * 150 + data[j + 2] * 29) >> 8;
+    return g;
+  }
+  function binarizeHybrid(g, w, h) {
+    const B = 8, bw = Math.ceil(w / B), bh = Math.ceil(h / B), avg = new Float32Array(bw * bh);
+    for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) {
+      let mn = 255, mx = 0, sum = 0, cnt = 0;
+      const y1 = Math.min(h, by * B + B), x1 = Math.min(w, bx * B + B);
+      for (let y = by * B; y < y1; y++) for (let x = bx * B; x < x1; x++) { const v = g[y * w + x]; sum += v; cnt++; if (v < mn) mn = v; if (v > mx) mx = v; }
+      let a = sum / cnt;
+      if (mx - mn <= 24) {
+        a = mn / 2;
+        if (by > 0 && bx > 0) { const n = (avg[(by - 1) * bw + bx] + 2 * avg[by * bw + bx - 1] + avg[(by - 1) * bw + bx - 1]) / 4; if (mn < n) a = n; }
+      }
+      avg[by * bw + bx] = a;
+    }
+    const out = new Uint8Array(w * h);
+    for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) {
+      const cy = Math.min(Math.max(by, 2), Math.max(bh - 3, 0)), cx = Math.min(Math.max(bx, 2), Math.max(bw - 3, 0));
+      let s = 0, c = 0;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const yy = cy + dy, xx = cx + dx; if (yy < 0 || xx < 0 || yy >= bh || xx >= bw) continue; s += avg[yy * bw + xx]; c++; }
+      const t = s / c, y1 = Math.min(h, by * B + B), x1 = Math.min(w, bx * B + B);
+      for (let y = by * B; y < y1; y++) for (let x = bx * B; x < x1; x++) out[y * w + x] = g[y * w + x] <= t ? 1 : 0;
+    }
+    return out;
+  }
+  function smooth(g, w, h) { // 暗い所のざらつきを減らす（3×3の平均）
+    const t = new Uint16Array(w * h), o = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; t[i] = g[i] + (x > 0 ? g[i - 1] : g[i]) + (x < w - 1 ? g[i + 1] : g[i]); }
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; o[i] = (t[i] + (y > 0 ? t[i - w] : t[i]) + (y < h - 1 ? t[i + w] : t[i])) / 9; }
+    return o;
+  }
+  function binarizeOtsu(g) {
+    const hist = new Array(256).fill(0); g.forEach(v => hist[v]++);
+    const tot = g.length; let sum = 0; for (let i = 0; i < 256; i++) sum += i * hist[i];
+    let sB = 0, wB = 0, best = 0, th = 128;
+    for (let i = 0; i < 256; i++) {
+      wB += hist[i]; if (!wB) continue; const wF = tot - wB; if (!wF) break;
+      sB += i * hist[i]; const mB = sB / wB, mF = (sum - sB) / wF, v = wB * wF * (mB - mF) * (mB - mF);
+      if (v > best) { best = v; th = i; }
+    }
+    const out = new Uint8Array(g.length); for (let i = 0; i < g.length; i++) out[i] = g[i] <= th ? 1 : 0;
+    return out;
+  }
+
+  /* ---------- 角の目印（1:1:3:1:1）を探す ---------- */
+  function ratioOK(s, tol = 0.7) {
+    const total = s[0] + s[1] + s[2] + s[3] + s[4]; if (total < 7) return false;
+    const m = total / 7, v = m * tol;
+    return Math.abs(m - s[0]) < v && Math.abs(m - s[1]) < v && Math.abs(3 * m - s[2]) < 3 * v && Math.abs(m - s[3]) < v && Math.abs(m - s[4]) < v;
+  }
+  function crossCheck(bin, w, h, cx, cy, dx, dy, maxCount, origTotal) {
+    const px = t => { const x = Math.round(cx + t * dx), y = Math.round(cy + t * dy); return (x < 0 || y < 0 || x >= w || y >= h) ? -1 : bin[y * w + x]; };
+    const s = [0, 0, 0, 0, 0];
+    let t = 0;
+    while (px(t) === 1) { s[2]++; t--; }
+    while (px(t) === 0 && s[1] <= maxCount) { s[1]++; t--; }
+    if (px(t) !== 1 || s[1] > maxCount) return null;
+    while (px(t) === 1 && s[0] <= maxCount) { s[0]++; t--; }
+    if (s[0] > maxCount) return null;
+    t = 1;
+    while (px(t) === 1) { s[2]++; t++; }
+    while (px(t) === 0 && s[3] <= maxCount) { s[3]++; t++; }
+    if (px(t) !== 1 || s[3] > maxCount) return null;
+    while (px(t) === 1 && s[4] <= maxCount) { s[4]++; t++; }
+    if (s[4] > maxCount) return null;
+    const total = s[0] + s[1] + s[2] + s[3] + s[4];
+    if (5 * Math.abs(total - origTotal) >= 3 * origTotal) return null;
+    if (!ratioOK(s)) return null;
+    return { center: t - s[4] - s[3] - s[2] / 2, total };
+  }
+  function findFinders(bin, w, h) {
+    const cands = [];
+    const add = (x, y, ms) => {
+      for (const c of cands) {
+        if (Math.abs(c.x - x) <= ms && Math.abs(c.y - y) <= ms && Math.abs(c.ms - ms) <= Math.max(1, Math.min(c.ms, ms))) {
+          const n = c.n + 1; c.x = (c.x * c.n + x) / n; c.y = (c.y * c.n + y) / n; c.ms = (c.ms * c.n + ms) / n; c.n = n; return;
+        }
+      }
+      cands.push({ x, y, ms, n: 1 });
+    };
+    const handle = (s, y, endX) => {
+      const total = s[0] + s[1] + s[2] + s[3] + s[4];
+      const cx = endX - s[4] - s[3] - s[2] / 2;
+      const v = crossCheck(bin, w, h, cx, y, 0, 1, s[2] * 2, total); if (!v) return;
+      const cy = y + v.center;
+      const hz = crossCheck(bin, w, h, cx, cy, 1, 0, s[2] * 2, total); if (!hz) return;
+      const cx2 = cx + hz.center;
+      const dg = crossCheck(bin, w, h, cx2, cy, 1, 1, s[2] * 2, total * 1.0); if (!dg) return;
+      add(cx2, cy, (v.total + hz.total) / 14);
+    };
+    for (let y = 0; y < h; y++) {
+      let s = [0, 0, 0, 0, 0], cur = 0;
+      for (let x = 0; x < w; x++) {
+        const d = bin[y * w + x];
+        if (d) { if (cur & 1) cur++; s[cur]++; }
+        else if (!(cur & 1)) {
+          if (cur === 0 && s[0] === 0) continue;
+          if (cur === 4) {
+            if (ratioOK(s)) handle(s, y, x);
+            s = [s[2], s[3], s[4], 1, 0]; cur = 3;
+          } else { cur++; s[cur]++; }
+        } else s[cur]++;
+      }
+      if (cur === 4 && ratioOK(s)) handle(s, y, w);
+    }
+    return cands;
+  }
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  function pickThree(cands) {
+    let list = cands.filter(c => c.n >= 2);
+    if (list.length < 3) list = cands.slice();
+    list.sort((a, b) => b.n - a.n); list = list.slice(0, 12);
+    const out = [];
+    for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) for (let k = j + 1; k < list.length; k++) {
+      const p = [list[i], list[j], list[k]];
+      const ms = (p[0].ms + p[1].ms + p[2].ms) / 3;
+      if (p.some(q => Math.abs(q.ms - ms) > ms * 0.5)) continue;
+      const d = [dist(p[1], p[2]), dist(p[0], p[2]), dist(p[0], p[1])];
+      const hi = d.indexOf(Math.max(...d)), c = d[hi], a = d[(hi + 1) % 3], b = d[(hi + 2) % 3];
+      if (Math.min(a, b) < ms * 8) continue;
+      const score = Math.abs(c * c - (a * a + b * b)) / (c * c) + Math.abs(a - b) / Math.max(a, b) + p.reduce((s, q) => s + Math.abs(q.ms - ms), 0) / ms * 0.3;
+      if (score > 0.6) continue;
+      const tl = p[hi], A = p[(hi + 1) % 3], B = p[(hi + 2) % 3];
+      const cross = (A.x - tl.x) * (B.y - tl.y) - (A.y - tl.y) * (B.x - tl.x);
+      out.push({ score, tl, tr: cross > 0 ? A : B, bl: cross > 0 ? B : A, ms });
+    }
+    return out.sort((a, b) => a.score - b.score).slice(0, 3);
+  }
+
+  /* ---------- 射影変換（升目の座標 → 画像の座標） ---------- */
+  function solve(A, b) {
+    const n = b.length;
+    for (let i = 0; i < n; i++) {
+      let p = i; for (let r = i + 1; r < n; r++) if (Math.abs(A[r][i]) > Math.abs(A[p][i])) p = r;
+      [A[i], A[p]] = [A[p], A[i]]; [b[i], b[p]] = [b[p], b[i]];
+      if (Math.abs(A[i][i]) < 1e-12) return null;
+      for (let r = i + 1; r < n; r++) { const f = A[r][i] / A[i][i]; for (let c = i; c < n; c++) A[r][c] -= f * A[i][c]; b[r] -= f * b[i]; }
+    }
+    const x = new Array(n).fill(0);
+    for (let i = n - 1; i >= 0; i--) { let s = b[i]; for (let c = i + 1; c < n; c++) s -= A[i][c] * x[c]; x[i] = s / A[i][i]; }
+    return x;
+  }
+  function homography(src, dst) {
+    const A = [], b = [];
+    for (let i = 0; i < 4; i++) {
+      const [x, y] = src[i], [u, v] = dst[i];
+      A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); b.push(u);
+      A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); b.push(v);
+    }
+    const h = solve(A, b); if (!h) return null;
+    return (x, y) => { const d = h[6] * x + h[7] * y + 1; return [(h[0] * x + h[1] * y + h[2]) / d, (h[3] * x + h[4] * y + h[5]) / d]; };
+  }
+  function findAlignment(bin, w, h, f, dim) {
+    const n = dim - 7;
+    const ex = { x: (f.tr.x - f.tl.x) / n, y: (f.tr.y - f.tl.y) / n }, ey = { x: (f.bl.x - f.tl.x) / n, y: (f.bl.y - f.tl.y) / n };
+    const u = dim - 6.5 - 3.5, px0 = f.tl.x + u * ex.x + u * ey.x, py0 = f.tl.y + u * ex.y + u * ey.y;
+    const ms = Math.hypot(ex.x, ex.y), R = Math.ceil(ms * 4);
+    let best = null, bs = -1;
+    for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) {
+      const cx = px0 + ox, cy = py0 + oy; let sc = 0;
+      for (let j = -2; j <= 2; j++) for (let i = -2; i <= 2; i++) {
+        const x = Math.round(cx + i * ex.x + j * ey.x), y = Math.round(cy + i * ex.y + j * ey.y);
+        if (x < 0 || y < 0 || x >= w || y >= h) continue;
+        const want = Math.max(Math.abs(i), Math.abs(j)) !== 1 ? 1 : 0;
+        if (bin[y * w + x] === want) sc++;
+      }
+      if (sc > bs || (sc === bs && Math.hypot(ox, oy) < Math.hypot(best.x - px0, best.y - py0))) { bs = sc; best = { x: cx, y: cy }; }
+    }
+    return bs >= 22 ? best : null;
+  }
+  function sample(bin, w, h, map, dim) {
+    const m = [];
+    for (let y = 0; y < dim; y++) {
+      const row = [];
+      for (let x = 0; x < dim; x++) {
+        const [px, py] = map(x + 0.5, y + 0.5), ix = Math.round(px), iy = Math.round(py);
+        if (ix < 0 || iy < 0 || ix >= w || iy >= h) return null;
+        row.push(bin[iy * w + ix] === 1);
+      }
+      m.push(row);
+    }
+    return m;
+  }
+  function tryLocate(bin, w, h) {
+    const triples = pickThree(findFinders(bin, w, h));
+    for (const f of triples) {
+      const ms = f.ms;
+      const d0 = Math.round((dist(f.tl, f.tr) / ms + dist(f.tl, f.bl) / ms) / 2) + 7;
+      let base = d0; switch (base & 3) { case 0: base++; break; case 2: base--; break; case 3: base -= 2; break; }
+      const dims = [base, base + 4, base - 4].filter(d => d >= 21 && d <= 17 + 4 * MAX_VER);
+      for (const dim of dims) {
+        const n = dim - 7;
+        const ex = { x: (f.tr.x - f.tl.x) / n, y: (f.tr.y - f.tl.y) / n }, ey = { x: (f.bl.x - f.tl.x) / n, y: (f.bl.y - f.tl.y) / n };
+        const src3 = [[3.5, 3.5], [dim - 3.5, 3.5], [3.5, dim - 3.5]], dst3 = [[f.tl.x, f.tl.y], [f.tr.x, f.tr.y], [f.bl.x, f.bl.y]];
+        // 4つ目の点：右下の小さな目印（見つかれば）か、平行四辺形で推定した右下の角
+        const fourth = [];
+        if (dim > 21) { const ap = findAlignment(bin, w, h, f, dim); if (ap) fourth.push({ mod: [dim - 6.5, dim - 6.5], pt: ap, R: 1 }); }
+        fourth.push({ mod: [dim - 3.5, dim - 3.5], pt: { x: f.tr.x + f.bl.x - f.tl.x, y: f.tr.y + f.bl.y - f.tl.y }, R: dim > 21 ? 2.5 : 2 });
+        for (const q of fourth) {
+          const H = homography(src3.concat([q.mod]), dst3.concat([[q.pt.x, q.pt.y]])); if (!H) continue;
+          const m = sample(bin, w, h, H, dim); if (!m || !readFormat(m)) continue;
+          const r = decodeMatrix(m); if (r) return r;
+          // 斜めから撮ったときのずれ：4つ目の点を少しずつ動かして、誤り訂正が通る位置を探す
+          for (let oy = -q.R; oy <= q.R; oy += 0.5) for (let ox = -q.R; ox <= q.R; ox += 0.5) {
+            if (!ox && !oy) continue;
+            const px = q.pt.x + ox * ex.x + oy * ey.x, py = q.pt.y + ox * ex.y + oy * ey.y;
+            const H2 = homography(src3.concat([q.mod]), dst3.concat([[px, py]])); if (!H2) continue;
+            const m2 = sample(bin, w, h, H2, dim); if (!m2) continue;
+            const r2 = decodeMatrix(m2); if (r2) return r2;
+          }
+        }
+      }
+    }
+    return null;
+  }
+  // img: { data: RGBA, width, height }（ImageData と同じ形）
+  function decode(img) {
+    const w = img.width, h = img.height, g = toGray(img);
+    const tries = [() => binarizeHybrid(g, w, h), () => binarizeHybrid(smooth(g, w, h), w, h), () => binarizeOtsu(g)];
+    for (const t of tries) {
+      const bin = t(); const r = tryLocate(bin, w, h); if (r) return r;
+      const inv = bin.map(v => 1 - v); const r2 = tryLocate(inv, w, h); if (r2) return r2;
+    }
+    return null;
+  }
+  return { decode, decodeMatrix, rsCorrect };
+})();
+if (typeof module !== 'undefined') module.exports = QRDecode;
+
+</script>
+<script>
+/* ================= 部品在庫：業務のルール（Apps Script・デモ・テストで共通） =================
+ * store が「表の読み書き」を受け持つ（Apps Scriptではスプレッドシート、デモではメモリ）。
+ * ここではルールだけを書く：在庫数＝記録の増減の合計／記録は追加だけ／取り消しは逆の行／棚卸は数えた時点の帳簿と比べる。
+ * Apps Script（V8）でも動くよう、?. や ?? は使わない。 */
+var BuhinCore = (function () {
+  var COLS = {
+    '部品': ['部品番号', '部品名', 'メーカー', '分類', '単位', '棚番', '発注点', '単価', '旧品番', 'メモ'],
+    '記録': ['記録ID', '日時', '部品番号', '区分', '数量', '増減', '担当者', 'メモ', '棚卸ID', '取消元ID', '確認', '受信日時'],
+    '棚卸': ['棚卸ID', '名前', '範囲', '帳簿を隠す', '状態', '開始日時', '開始者', '確定日時', '確定者', '数えた部品', '差のある部品', '差額'],
+    'カウント': ['カウントID', '棚卸ID', '部品番号', '数えた数', '帳簿数', '差', '日時', '担当者', '判定', '理由', '受信日時'],
+    '担当者': ['名前', '役割', '暗証番号', '使う'],
+    '登録依頼': ['依頼ID', '日時', '部品番号', 'メモ', '数', '依頼者', '状態'],
+  };
+  var DATE_COLS = { '日時': 1, '開始日時': 1, '確定日時': 1, '受信日時': 1 };
+  var REASONS = ['数え間違い', '入力漏れ', '破損・廃棄', '紛失', '原因不明', '初回の在庫登録'];
+  var RECENT = 300;          // 画面に送る最近の記録の数
+  var TOKEN_DAYS = 30;       // ログインが続く日数
+  var MAX_FAIL = 5;          // 暗証番号を続けて間違えられる回数
+
+  function norm(s) { return String(s == null ? '' : s).normalize('NFKC').toUpperCase().replace(/[\s\-‐‑‒–—―ーｰ－_.\/・]/g, ''); }
+  function areaOf(shelf) { var m = String(shelf || '').normalize('NFKC').toUpperCase().match(/^[A-Z]+/); return m ? m[0] : '?'; }
+  function num(v) { var n = Number(v); return isFinite(n) ? n : 0; }
+  function bool(v, dflt) { if (v === '' || v == null) return dflt; if (typeof v === 'boolean') return v; var s = String(v).toUpperCase(); return !(s === 'FALSE' || s === '0' || s === 'いいえ' || s === 'NO'); }
+  function isInt(v, lo, hi) { return typeof v === 'number' && Math.floor(v) === v && v >= lo && v <= hi; }
+  function okDT(s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(s); }
+  function fail(msg, code) { return { ok: false, error: msg, code: code || 'bad' }; }
+  function scopeOf(st) { return String(st['範囲'] || '').split(/[\s,、]+/).filter(Boolean).map(function (a) { return a.toUpperCase(); }); }
+
+  function create(store) {
+    function staffList() { return store.rows('担当者').filter(function (s) { return String(s['名前'] || '').trim() && bool(s['使う'], true); }); }
+    function staffByName(n) { return staffList().filter(function (s) { return String(s['名前']).trim() === n; })[0] || null; }
+    function isBoss(u) { return u && u.role === '責任者'; }
+    function nowDT() { return store.now(); }
+    function clampDT(dt) { var n = nowDT(); if (!okDT(dt)) return n; if (dt.length === 16) dt += ':00'; return dt > n ? n : dt; }
+
+    /* ---------- ログイン ---------- */
+    function b64(s) { return store.b64(s); }
+    function makeToken(s) {
+      var exp = Date.now() + TOKEN_DAYS * 864e5, payload = JSON.stringify({ n: String(s['名前']).trim(), e: exp });
+      return b64(payload) + '.' + store.hmac(payload);
+    }
+    function verifyToken(t) {
+      if (!t || typeof t !== 'string' || t.indexOf('.') < 0) return null;
+      var p = t.split('.'), payload;
+      try { payload = store.unb64(p[0]); } catch (e) { return null; }
+      if (store.hmac(payload) !== p[1]) return null;
+      var o; try { o = JSON.parse(payload); } catch (e) { return null; }
+      if (!o || o.e < Date.now()) return null;
+      var s = staffByName(o.n); if (!s) return null;
+      return { name: String(s['名前']).trim(), role: String(s['役割'] || '担当者').trim() === '責任者' ? '責任者' : '担当者' };
+    }
+    function login(req) {
+      var name = String(req.name || '').trim(), s = staffByName(name);
+      if (!s) return fail('その名前の担当者はいません', 'login');
+      var key = 'fail:' + name, n = num(store.cacheGet(key));
+      if (n >= MAX_FAIL) return fail('暗証番号を' + MAX_FAIL + '回まちがえたため、10分間ログインできません', 'locked');
+      if (String(s['暗証番号']).trim() === '' || String(req.pin || '') !== String(s['暗証番号']).trim()) {
+        store.cachePut(key, String(n + 1), 600);
+        return fail('暗証番号がちがいます（あと' + (MAX_FAIL - n - 1) + '回）', 'login');
+      }
+      store.cachePut(key, '0', 1);
+      var role = String(s['役割'] || '').trim() === '責任者' ? '責任者' : '担当者';
+      return { ok: true, token: makeToken(s), me: { name: name, role: role } };
+    }
+
+    /* ---------- 計算 ---------- */
+    function stockMap(recs) { var m = {}; recs.forEach(function (r) { var c = r['部品番号']; m[c] = (m[c] || 0) + num(r['増減']); }); return m; }
+    function bookAt(recs, code, dt) { var s = 0; recs.forEach(function (r) { if (r['部品番号'] === code && String(r['日時']) <= dt) s += num(r['増減']); }); return s; }
+    function activeST() { return store.rows('棚卸').filter(function (s) { return s['状態'] === '実施中'; })[0] || null; }
+    function latestCounts(st, recs) { // 部品ごとに一番新しいカウント。帳簿数は「数えた時点」までの記録から計算し直す
+      var by = {};
+      store.rows('カウント').forEach(function (c) { if (c['棚卸ID'] === st['棚卸ID']) by[c['部品番号']] = c; });
+      Object.keys(by).forEach(function (code) { var c = by[code], b = bookAt(recs, code, String(c['日時'])); by[code] = { row: c, book: b, diff: num(c['数えた数']) - b }; });
+      return by;
+    }
+    function recOut(r) { return { id: r['記録ID'], dt: String(r['日時']), code: r['部品番号'], kind: r['区分'], qty: num(r['数量']), delta: num(r['増減']), staff: r['担当者'], memo: r['メモ'] || '', stId: r['棚卸ID'] || '', cancelOf: r['取消元ID'] || '' }; }
+
+    function snapshot(user) {
+      var recs = store.rows('記録'), stock = stockMap(recs);
+      var parts = store.rows('部品').filter(function (p) { return String(p['部品番号']).trim(); }).map(function (p) {
+        var code = String(p['部品番号']).trim();
+        return { code: code, name: p['部品名'] || '', maker: p['メーカー'] || '', cat: p['分類'] || '', unit: p['単位'] || '個', shelf: String(p['棚番'] || ''), reorder: num(p['発注点']), price: num(p['単価']), old: String(p['旧品番'] || ''), memo: p['メモ'] || '', stock: stock[code] || 0 };
+      });
+      var st = activeST(), counts = [];
+      if (st) {
+        var hide = bool(st['帳簿を隠す'], true) && !isBoss(user);
+        store.rows('カウント').forEach(function (c) {
+          if (c['棚卸ID'] !== st['棚卸ID']) return;
+          var b = bookAt(recs, c['部品番号'], String(c['日時']));
+          counts.push({ id: c['カウントID'], stId: c['棚卸ID'], code: c['部品番号'], counted: num(c['数えた数']), bookAt: hide ? null : b, diff: hide ? null : num(c['数えた数']) - b, dt: String(c['日時']), staff: c['担当者'], verdict: c['判定'] || '', reason: c['理由'] || '' });
+        });
+      }
+      var sts = store.rows('棚卸').map(function (s) {
+        return { id: s['棚卸ID'], name: s['名前'], scope: scopeOf(s), blind: bool(s['帳簿を隠す'], true), status: s['状態'], startedAt: String(s['開始日時'] || ''), startedBy: s['開始者'] || '', fixedAt: String(s['確定日時'] || ''), fixedBy: s['確定者'] || '',
+          result: s['状態'] === '確定済' ? { counted: num(s['数えた部品']), diffs: num(s['差のある部品']), amount: num(s['差額']) } : null };
+      });
+      return {
+        ok: true, me: user, serverTime: nowDT(),
+        parts: parts, records: recs.slice(-RECENT).map(recOut), totalRecords: recs.length,
+        stocktakes: sts, counts: counts,
+        requests: store.rows('登録依頼').filter(function (q) { return q['状態'] !== '登録済'; }).map(function (q) { return { id: q['依頼ID'], dt: String(q['日時']), code: q['部品番号'], memo: q['メモ'] || '', qty: num(q['数']), by: q['依頼者'], status: q['状態'] || '未対応' }; }),
+        staff: staffList().map(function (s) { return { name: String(s['名前']).trim(), role: String(s['役割']).trim() === '責任者' ? '責任者' : '担当者' }; }),
+        reasons: REASONS,
+      };
+    }
+
+    /* ---------- スマホから送られてきた入力（電波が戻ったときにまとめて届くこともある）。同じIDは二度入れない ---------- */
+    function push(user, ops) {
+      if (!Array.isArray(ops)) return fail('送られてきた形がちがいます');
+      var recs = store.rows('記録'), counts = store.rows('カウント'), reqs = store.rows('登録依頼');
+      var parts = {}; store.rows('部品').forEach(function (p) { parts[String(p['部品番号']).trim()] = p; });
+      var seen = {}; recs.forEach(function (r) { seen[r['記録ID']] = 1; }); counts.forEach(function (c) { seen[c['カウントID']] = 1; }); reqs.forEach(function (q) { seen[q['依頼ID']] = 1; });
+      var cancelled = {}; recs.forEach(function (r) { if (r['取消元ID']) cancelled[r['取消元ID']] = 1; });
+      var stock = stockMap(recs), st = activeST(), now = nowDT();
+      var addR = [], addC = [], addQ = [], results = [];
+      // 部品ごとに「最後に確定した棚卸で数えた時刻」。それより前の動きは、数えた数にもう入っている
+      var base = {}, finals = store.rows('棚卸').filter(function (s) { return s['状態'] === '確定済'; })
+        .sort(function (a, b) { return String(a['確定日時']) < String(b['確定日時']) ? -1 : 1; });
+      finals.forEach(function (s) {
+        var last = {}; counts.forEach(function (c) { if (c['棚卸ID'] === s['棚卸ID']) last[c['部品番号']] = c; });
+        Object.keys(last).forEach(function (code) { base[code] = { stId: s['棚卸ID'], name: String(s['名前'] || ''), dt: String(last[code]['日時']) }; });
+      });
+      function lateFix(id, code, at, delta, what) { // 確定のあとに届いた「数えるより前」の動きは、在庫を変えない補正の行を足して打ち消す
+        var b = base[code]; if (!b || !delta || at > b.dt) return '';
+        var fix = { '記録ID': id + '-H', '日時': now, '部品番号': code, '区分': '棚卸調整', '数量': -delta, '増減': -delta, '担当者': user.name, 'メモ': b.name + 'の確定後に届いた ' + id + '（' + what + '）の補正。数えた数に含まれているため在庫は変えない', '棚卸ID': b.stId, '取消元ID': '', '確認': false, '受信日時': now };
+        addR.push(fix); recs.push(fix); stock[code] = (stock[code] || 0) - delta;
+        return b.name + 'で数えた時より前の' + what + 'なので、在庫は変えずに記録だけ残しました';
+      }
+      ops.forEach(function (op) {
+        var id = op && typeof op.id === 'string' ? op.id.slice(0, 40) : '';
+        if (!id) { results.push({ id: id, ok: false, error: 'IDがありません' }); return; }
+        if (seen[id]) { results.push({ id: id, ok: true, dup: true }); return; }
+        var dt = clampDT(op.dt), r;
+        if (op.t === 'rec') {
+          var p = parts[op.code];
+          if (!p) r = 'この部品番号は登録されていません：' + op.code;
+          else if (op.kind !== '入庫' && op.kind !== '出庫') r = '区分がちがいます';
+          else if (!isInt(op.qty, 1, 9999)) r = '数量は1〜9999で入れてください';
+          else if (op.qty >= 100 && !op.ok) r = '100以上の数は確認が必要です';
+          else if (op.kind === '出庫' && (stock[op.code] || 0) - op.qty < 0 && !op.ok) r = '在庫がマイナスになる出庫は確認が必要です';
+          if (r) { results.push({ id: id, ok: false, error: r }); return; }
+          var d = op.kind === '出庫' ? -op.qty : op.qty;
+          var row = { '記録ID': id, '日時': dt, '部品番号': op.code, '区分': op.kind, '数量': op.qty, '増減': d, '担当者': user.name, 'メモ': String(op.memo || '').slice(0, 200), '棚卸ID': '', '取消元ID': '', '確認': !!op.ok, '受信日時': now };
+          addR.push(row); recs.push(row); stock[op.code] = (stock[op.code] || 0) + d;
+          var note = lateFix(id, op.code, dt, d, op.kind); seen[id] = 1;
+          results.push(note ? { id: id, ok: true, note: note } : { id: id, ok: true }); return;
+        } else if (op.t === 'cxl') {
+          var o = null; recs.forEach(function (x) { if (x['記録ID'] === op.of) o = x; });
+          if (!o) r = '取り消す元の記録が見つかりません';
+          else if (o['区分'] !== '入庫' && o['区分'] !== '出庫') r = '入庫・出庫の記録だけ取り消せます';
+          else if (cancelled[o['記録ID']]) r = 'すでに取り消されています';
+          else if (!isBoss(user) && !(o['担当者'] === user.name && String(o['日時']).slice(0, 10) === dt.slice(0, 10))) r = '担当者が取り消せるのは自分の当日の入力だけです';
+          if (r) { results.push({ id: id, ok: false, error: r }); return; }
+          var row2 = { '記録ID': id, '日時': dt, '部品番号': o['部品番号'], '区分': '取消', '数量': num(o['数量']), '増減': -num(o['増減']), '担当者': user.name, 'メモ': o['記録ID'] + '（' + o['区分'] + '）の取り消し', '棚卸ID': '', '取消元ID': o['記録ID'], '確認': false, '受信日時': now };
+          addR.push(row2); recs.push(row2); cancelled[o['記録ID']] = 1; stock[o['部品番号']] = (stock[o['部品番号']] || 0) - num(o['増減']);
+          var note2 = lateFix(id, o['部品番号'], String(o['日時']), -num(o['増減']), '取り消し'); seen[id] = 1;
+          results.push(note2 ? { id: id, ok: true, note: note2 } : { id: id, ok: true }); return;
+        } else if (op.t === 'cnt') {
+          var pc = parts[op.code];
+          if (!st || st['棚卸ID'] !== op.stId) r = 'この棚卸はもう終わっています';
+          else if (!pc) r = 'この部品番号は登録されていません：' + op.code;
+          else if (scopeOf(st).indexOf(areaOf(pc['棚番'])) < 0) r = 'この部品は今の棚卸の範囲外です';
+          else if (!isInt(op.counted, 0, 999999)) r = '数えた数は0以上の整数で入れてください';
+          if (r) { results.push({ id: id, ok: false, error: r }); return; }
+          var b = bookAt(recs, op.code, dt);
+          var crow = { 'カウントID': id, '棚卸ID': st['棚卸ID'], '部品番号': op.code, '数えた数': op.counted, '帳簿数': b, '差': op.counted - b, '日時': dt, '担当者': user.name, '判定': '', '理由': '', '受信日時': now };
+          addC.push(crow); counts.push(crow);
+        } else if (op.t === 'req') {
+          var code = String(op.code || '').normalize('NFKC').toUpperCase().trim();
+          if (!code) { results.push({ id: id, ok: false, error: '部品番号を入れてください' }); return; }
+          var qrow = { '依頼ID': id, '日時': dt, '部品番号': code, 'メモ': String(op.memo || '').slice(0, 200), '数': isInt(op.qty, 0, 999999) ? op.qty : 1, '依頼者': user.name, '状態': '未対応' };
+          addQ.push(qrow); reqs.push(qrow);
+        } else { results.push({ id: id, ok: false, error: '知らない種類の入力です' }); return; }
+        seen[id] = 1; results.push({ id: id, ok: true });
+      });
+      if (addR.length) store.append('記録', addR);
+      if (addC.length) store.append('カウント', addC);
+      if (addQ.length) store.append('登録依頼', addQ);
+      return { ok: true, results: results };
+    }
+
+    /* ---------- 責任者の操作（電波があるときだけ） ---------- */
+    function start(user, req) {
+      if (!isBoss(user)) return fail('棚卸を始めるのは責任者です', 'role');
+      if (activeST()) return fail('実施中の棚卸があります。確定してから始めてください');
+      var name = String(req.name || '').trim().slice(0, 40); if (!name) return fail('名前を入れてください');
+      var areas = {}; store.rows('部品').forEach(function (p) { areas[areaOf(p['棚番'])] = 1; });
+      var scope = (req.scope || []).map(function (a) { return String(a).toUpperCase(); }).filter(function (a) { return areas[a]; });
+      if (!scope.length) return fail('数える棚を選んでください');
+      var id = 'ST' + nowDT().replace(/\D/g, '').slice(0, 12);
+      store.append('棚卸', [{ '棚卸ID': id, '名前': name, '範囲': scope.join(','), '帳簿を隠す': !!req.blind, '状態': '実施中', '開始日時': nowDT(), '開始者': user.name, '確定日時': '', '確定者': '', '数えた部品': '', '差のある部品': '', '差額': '' }]);
+      return { ok: true, id: id };
+    }
+    function setBlind(user, req) {
+      if (!isBoss(user)) return fail('責任者だけが変えられます', 'role');
+      var st = activeST(); if (!st) return fail('実施中の棚卸がありません');
+      store.update('棚卸', '棚卸ID', st['棚卸ID'], { '帳簿を隠す': !!req.blind });
+      return { ok: true };
+    }
+    function verdict(user, req) {
+      if (!isBoss(user)) return fail('差異の確認は責任者です', 'role');
+      var st = activeST(); if (!st) return fail('実施中の棚卸がありません');
+      var recs = store.rows('記録'), lc = latestCounts(st, recs);
+      var codes = req.all ? Object.keys(lc).filter(function (c) { return lc[c].diff !== 0 && lc[c].row['判定'] !== 'OK'; }) : [req.code];
+      var v = req.verdict, reason = req.reason || '';
+      if (v !== 'OK' && v !== '再カウント' && v !== '') return fail('判定がちがいます');
+      if (v === 'OK' && REASONS.indexOf(reason) < 0) return fail('理由を選んでください');
+      var patches = {};
+      for (var i = 0; i < codes.length; i++) {
+        var x = lc[codes[i]]; if (!x) return fail('この部品はまだ数えていません');
+        patches[x.row['カウントID']] = { '判定': v, '理由': v === 'OK' ? reason : '' };
+      }
+      store.updateMany('カウント', 'カウントID', patches);
+      return { ok: true, n: codes.length };
+    }
+    function finalize(user, req) {
+      if (!isBoss(user)) return fail('確定は責任者です', 'role');
+      var st = activeST(); if (!st || st['棚卸ID'] !== req.stId) return fail('実施中の棚卸が見つかりません');
+      var recs = store.rows('記録'), lc = latestCounts(st, recs), codes = Object.keys(lc);
+      if (!codes.length) return fail('まだ1つも数えていません');
+      var open = codes.filter(function (c) { return (lc[c].diff !== 0 && lc[c].row['判定'] !== 'OK') || lc[c].row['判定'] === '再カウント'; });
+      if (open.length) return fail('差のある部品の確認が' + open.length + '件残っています');
+      var price = {}; store.rows('部品').forEach(function (p) { price[String(p['部品番号']).trim()] = num(p['単価']); });
+      var now = nowDT(), adds = [], amount = 0, n = 0;
+      codes.forEach(function (c) {
+        var x = lc[c]; if (!x.diff) return;
+        n++; amount += x.diff * (price[c] || 0);
+        adds.push({ '記録ID': 'A' + st['棚卸ID'] + '-' + n, '日時': now, '部品番号': c, '区分': '棚卸調整', '数量': x.diff, '増減': x.diff, '担当者': user.name, 'メモ': st['名前'] + '（' + (x.row['理由'] || '確認済') + '）', '棚卸ID': st['棚卸ID'], '取消元ID': '', '確認': false, '受信日時': now });
+      });
+      if (adds.length) store.append('記録', adds);
+      var fix = {}; // カウントの「帳簿数・差」を、数えた時点までに届いたすべての記録で計算し直した値にそろえる
+      codes.forEach(function (c) { var x = lc[c]; if (num(x.row['帳簿数']) !== x.book) fix[x.row['カウントID']] = { '帳簿数': x.book, '差': x.diff }; });
+      if (Object.keys(fix).length) store.updateMany('カウント', 'カウントID', fix);
+      store.update('棚卸', '棚卸ID', st['棚卸ID'], { '状態': '確定済', '確定日時': now, '確定者': user.name, '数えた部品': codes.length, '差のある部品': n, '差額': amount });
+      return { ok: true, adjusted: n, amount: amount };
+    }
+    function addPart(user, req) {
+      if (!isBoss(user)) return fail('部品の登録は責任者です', 'role');
+      var p = req.part || {}, code = String(p.code || '').normalize('NFKC').toUpperCase().trim();
+      if (!code) return fail('部品番号を入れてください');
+      var dup = store.rows('部品').filter(function (x) { return norm(x['部品番号']) === norm(code); })[0];
+      if (dup) return fail('この部品番号はもう登録されています（' + dup['部品番号'] + '）');
+      if (!String(p.name || '').trim()) return fail('部品名を入れてください');
+      var shelf = String(p.shelf || '').normalize('NFKC').toUpperCase().trim();
+      if (!/^[A-Z]+/.test(shelf)) return fail('棚番は英字で始めてください（例：A-01）');
+      store.append('部品', [{ '部品番号': code, '部品名': String(p.name).trim(), 'メーカー': p.maker || '', '分類': p.cat || '', '単位': p.unit || '個', '棚番': shelf, '発注点': num(p.reorder), '単価': num(p.price), '旧品番': String(p.old || '').normalize('NFKC').toUpperCase().trim(), 'メモ': p.memo || '' }]);
+      if (req.reqId) store.update('登録依頼', '依頼ID', req.reqId, { '状態': '登録済' });
+      return { ok: true, code: code };
+    }
+    function ledger(user, req) {
+      var bal = 0, list = [];
+      store.rows('記録').forEach(function (r) { if (r['部品番号'] === req.code) { bal += num(r['増減']); var o = recOut(r); o.bal = bal; list.push(o); } });
+      return { ok: true, code: req.code, rows: list.slice(-30).reverse() };
+    }
+
+    function handle(req) {
+      req = req || {};
+      try {
+        if (req.action === 'ping') return { ok: true, name: '部品在庫', time: nowDT() };
+        var secret = store.secret();
+        if (!secret) return fail('サーバーの初期設定がまだです（スプレッドシートのメニュー「部品在庫」→「初期設定」）', 'setup');
+        if (req.key !== secret) return fail('合言葉がちがいます。設定用のQRをもう一度読んでください', 'key');
+        if (req.action === 'staff') return { ok: true, staff: staffList().map(function (s) { return { name: String(s['名前']).trim(), role: String(s['役割']).trim() === '責任者' ? '責任者' : '担当者' }; }) };
+        if (req.action === 'login') return login(req);
+        var user = verifyToken(req.token);
+        if (!user) return fail('ログインし直してください', 'auth');
+        switch (req.action) {
+          case 'snapshot': return snapshot(user);
+          case 'ledger': return ledger(user, req);
+          case 'push': return store.lock(function () { return push(user, req.ops); });
+          case 'start': return store.lock(function () { return start(user, req); });
+          case 'blind': return store.lock(function () { return setBlind(user, req); });
+          case 'verdict': return store.lock(function () { return verdict(user, req); });
+          case 'finalize': return store.lock(function () { return finalize(user, req); });
+          case 'addPart': return store.lock(function () { return addPart(user, req); });
+        }
+        return fail('知らない操作です：' + req.action);
+      } catch (e) {
+        return fail('サーバーで問題が起きました：' + (e && e.message ? e.message : e), 'server');
+      }
+    }
+    return { handle: handle };
+  }
+  return { create: create, COLS: COLS, DATE_COLS: DATE_COLS, REASONS: REASONS, norm: norm, areaOf: areaOf };
+})();
+if (typeof module !== 'undefined') module.exports = BuhinCore;
+
+/* ---------- メモリの中の表（デモとテスト用）。Apps Script のスプレッドシート版と同じ形で読み書きする ---------- */
+function BuhinMemoryStore(tables, opt) {
+  opt = opt || {};
+  var cache = {};
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  var iso = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); };
+  function h32(s) { var h = 0x811c9dc5; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); }
+  return {
+    tables: tables,
+    rows: function (n) { return (tables[n] || []).slice(); },
+    append: function (n, objs) { tables[n] = (tables[n] || []).concat(objs.map(function (o) { return Object.assign({}, o); })); },
+    update: function (n, k, key, patch) { (tables[n] || []).forEach(function (r) { if (String(r[k]) === String(key)) Object.assign(r, patch); }); },
+    updateMany: function (n, k, patches) { (tables[n] || []).forEach(function (r) { var p = patches[r[k]]; if (p) Object.assign(r, p); }); },
+    now: function () { return iso(opt.clock ? opt.clock() : new Date()); },
+    secret: function () { return opt.secret || ''; },
+    hmac: opt.hmac || function (t) { var s = opt.secret || ''; return h32(s + '|' + t) + h32(t + '|' + s) + h32(s + t + s); },
+    b64: function (s) { return typeof Buffer !== 'undefined' ? Buffer.from(s, 'utf8').toString('base64url') : btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); },
+    unb64: function (s) { if (typeof Buffer !== 'undefined') return Buffer.from(s, 'base64url').toString('utf8'); s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); },
+    cacheGet: function (k) { var c = cache[k]; return c && c.exp > Date.now() ? c.v : null; },
+    cachePut: function (k, v, sec) { cache[k] = { v: v, exp: Date.now() + sec * 1000 }; },
+    lock: function (fn) { return fn(); },
+  };
+}
+if (typeof module !== 'undefined') module.exports = BuhinMemoryStore;
+
+/* ---------- 例のデータ（部品A〜X）。日付は「今日」から逆算するので、いつ開いても過去の日付になる ---------- */
+function BuhinSample(today) {
+  var base = today ? new Date(today) : new Date();
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  var at = function (days, hh, mm) { var d = new Date(base); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - days); d.setHours(hh, mm, 0, 0); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':00'; };
+  var P = [
+    ['10200-11010', '部品A', 'メーカーA', 'フィルター', '個', 'A-01', 5, 1200, '', 12], ['10200-11020', '部品B', 'メーカーA', 'フィルター', '個', 'A-02', 5, 1500, '', 9],
+    ['10200-11030', '部品C', 'メーカーA', 'フィルター', '個', 'A-03', 3, 2400, '10200-11003', 6], ['AB-1203-01', '部品D', 'メーカーB', 'ベルト', '本', 'A-04', 2, 3800, '', 5],
+    ['AB-1203-02', '部品E', 'メーカーB', 'ベルト', '本', 'A-05', 2, 4200, '', 4], ['AB-1210', '部品F', 'メーカーB', 'ベルト', '本', 'A-06', 1, 6500, '', 2],
+    ['K1-2210', '部品G', 'メーカーC', 'ボルト類', '個', 'A-07', 20, 45, '', 150], ['K1-2215', '部品H', 'メーカーC', 'ボルト類', '個', 'A-08', 20, 60, '', 80],
+    ['K1-3301', '部品I', 'メーカーC', 'ボルト類', 'セット', 'B-01', 5, 380, '', 12], ['55011-80720', '部品J', 'メーカーA', 'シール類', '個', 'B-02', 4, 950, '', 10],
+    ['55011-80730', '部品K', 'メーカーA', 'シール類', '個', 'B-03', 4, 1100, '55011-80700', 7], ['5T051-1234', '部品L', 'メーカーD', '電装', '個', 'B-04', 2, 8900, '', 3],
+    ['5T051-1240', '部品M', 'メーカーD', '電装', '個', 'B-05', 2, 12000, '', 2], ['X-0045', '部品N', 'メーカーE', '電装', '個', 'B-06', 3, 2750, '', 6],
+    ['X-0046', '部品O', 'メーカーE', '電装', '個', 'B-07', 3, 2980, '', 5], ['2200A-001', '部品P', 'メーカーF', '駆動系', '個', 'B-08', 1, 15800, '', 2],
+    ['2200A-002', '部品Q', 'メーカーF', '駆動系', '個', 'C-01', 1, 18500, '', 1], ['2200A-010', '部品R', 'メーカーF', '駆動系', 'セット', 'C-02', 1, 9600, '', 3],
+    ['OL-15W40-4', '部品S', 'メーカーG', 'オイル類', '缶', 'C-03', 4, 4500, '', 8], ['OL-80W90-1', '部品T', 'メーカーG', 'オイル類', '缶', 'C-04', 6, 1650, '', 12],
+    ['GR-400', '部品U', 'メーカーG', 'オイル類', '本', 'C-05', 6, 780, '', 14], ['PN-0805', '部品V', 'メーカーC', '小物', '袋', 'C-06', 10, 220, '', 30],
+    ['PN-1008', '部品W', 'メーカーC', '小物', '袋', 'C-07', 10, 260, '', 25], ['CL-3320-A', '部品X', 'メーカーB', '小物', '個', 'C-08', 5, 640, '', 9],
+  ];
+  var parts = P.map(function (p) { return { '部品番号': p[0], '部品名': p[1], 'メーカー': p[2], '分類': p[3], '単位': p[4], '棚番': p[5], '発注点': p[6], '単価': p[7], '旧品番': p[8], 'メモ': '' }; });
+  var recs = [], n = 0;
+  var R = function (dt, code, kind, qty, who, memo, extra) {
+    var r = { '記録ID': 'R' + String(++n).padStart(4, '0'), '日時': dt, '部品番号': code, '区分': kind, '数量': qty, '増減': kind === '出庫' ? -qty : qty, '担当者': who, 'メモ': memo || '', '棚卸ID': '', '取消元ID': '', '確認': false, '受信日時': dt };
+    Object.keys(extra || {}).forEach(function (k) { r[k] = extra[k]; }); recs.push(r); return r;
+  };
+  P.forEach(function (p, i) { R(at(24, 17, Math.min(59, i * 2)), p[0], '棚卸調整', p[9], '山本', '初回棚卸（在庫の登録）', { '棚卸ID': 'ST01' }); });
+  [[22, 10, 5, '10200-11010', '出庫', 3, '田中', '修理 No.1021'], [22, 14, 20, 'K1-2210', '出庫', 12, '鈴木', ''], [21, 9, 15, 'OL-15W40-4', '入庫', 6, '山本', 'メーカーG 納品'],
+   [20, 11, 0, 'AB-1203-01', '出庫', 2, '田中', ''], [19, 15, 30, '10200-11030', '出庫', 1, '鈴木', '修理 No.1033'], [18, 10, 10, 'PN-0805', '出庫', 6, '田中', ''],
+   [17, 13, 45, '5T051-1234', '出庫', 1, '鈴木', ''], [16, 9, 20, '10200-11020', '入庫', 10, '山本', 'メーカーA 納品'], [15, 16, 0, 'K1-2215', '出庫', 16, '田中', ''],
+   [14, 10, 40, 'X-0045', '出庫', 2, '鈴木', ''], [13, 14, 10, 'OL-80W90-1', '出庫', 4, '田中', ''], [12, 9, 0, 'GR-400', '入庫', 12, '山本', ''],
+   [11, 11, 20, '55011-80720', '出庫', 2, '鈴木', ''], [10, 15, 50, '2200A-001', '出庫', 1, '田中', '修理 No.1048'], [9, 10, 30, 'AB-1210', '出庫', 1, '鈴木', ''],
+   [8, 13, 0, '10200-11010', '出庫', 4, '田中', ''], [7, 9, 40, 'K1-2210', '入庫', 100, '山本', 'メーカーC 納品'], [6, 11, 30, '2200A-002', '出庫', 1, '田中', '修理 No.1052'],
+   [6, 14, 30, 'CL-3320-A', '出庫', 3, '鈴木', ''], [5, 10, 15, '5T051-1240', '出庫', 1, '田中', ''], [4, 16, 20, 'PN-1008', '出庫', 5, '鈴木', ''],
+   [3, 11, 0, '10200-11030', '入庫', 2, '山本', 'メーカーA 納品'], [3, 15, 10, 'K1-2210', '出庫', 8, '田中', ''], [2, 10, 0, 'OL-15W40-4', '出庫', 2, '鈴木', ''],
+   [2, 14, 40, '10200-11030', '出庫', 1, '田中', '修理 No.1066']].forEach(function (m) { R(at(m[0], m[1], m[2]), m[3], m[4], m[5], m[6], m[7]); });
+  var wrong = R(at(2, 16, 5), 'K1-2215', '出庫', 12, '鈴木', '');
+  R(at(2, 16, 8), 'K1-2215', '取消', 12, '鈴木', wrong['記録ID'] + '（出庫）の取り消し', { '増減': 12, '取消元ID': wrong['記録ID'] });
+  R(at(2, 16, 9), 'K1-2215', '出庫', 2, '鈴木', '');
+  var book = function (code, dt) { return recs.reduce(function (a, r) { return a + (r['部品番号'] === code && r['日時'] <= dt ? r['増減'] : 0); }, 0); };
+  var counts = [], cn = 0;
+  var C = function (dt, code, v, who) { var b = book(code, dt); counts.push({ 'カウントID': 'C' + String(++cn).padStart(4, '0'), '棚卸ID': 'ST02', '部品番号': code, '数えた数': v, '帳簿数': b, '差': v - b, '日時': dt, '担当者': who, '判定': '', '理由': '', '受信日時': dt }); };
+  P.slice(0, 8).forEach(function (p, i) { var dt = at(1, 16, 5 + i * 4), b = book(p[0], dt); C(dt, p[0], p[0] === '10200-11030' ? b - 1 : p[0] === 'K1-2210' ? b - 2 : b, '田中'); });
+  P.slice(8, 11).forEach(function (p, i) { var dt = at(1, 16, 10 + i * 5), b = book(p[0], dt); C(dt, p[0], p[0] === '55011-80720' ? b + 1 : b, '鈴木'); });
+  R(at(1, 17, 20), '10200-11010', '出庫', 1, '田中', '棚卸中の出庫');
+  var y = new Date(base); y.setDate(y.getDate() - 1);
+  var value0 = P.reduce(function (a, p) { return a + p[9] * p[7]; }, 0);
+  return {
+    '部品': parts, '記録': recs, 'カウント': counts,
+    '棚卸': [
+      { '棚卸ID': 'ST01', '名前': '初回棚卸（在庫の登録）', '範囲': 'A,B,C', '帳簿を隠す': false, '状態': '確定済', '開始日時': at(24, 13, 0), '開始者': '山本', '確定日時': at(24, 17, 50), '確定者': '山本', '数えた部品': 24, '差のある部品': 24, '差額': value0 },
+      { '棚卸ID': 'ST02', '名前': (y.getMonth() + 1) + '月 棚卸', '範囲': 'A,B,C', '帳簿を隠す': true, '状態': '実施中', '開始日時': at(1, 16, 0), '開始者': '山本', '確定日時': '', '確定者': '', '数えた部品': '', '差のある部品': '', '差額': '' },
+    ],
+    '担当者': [{ '名前': '田中', '役割': '担当者', '暗証番号': '1111', '使う': true }, { '名前': '鈴木', '役割': '担当者', '暗証番号': '2222', '使う': true }, { '名前': '山本', '役割': '責任者', '暗証番号': '9999', '使う': true }],
+    '登録依頼': [{ '依頼ID': 'Q0001', '日時': at(3, 10, 30), '部品番号': 'BX-7702', 'メモ': '箱に入ったまま棚の下にあった', '数': 2, '依頼者': '鈴木', '状態': '未対応' }],
+  };
+}
+if (typeof module !== 'undefined') module.exports = BuhinSample;
+
+/* ================= アプリの状態 =================
+ * サーバー（スプレッドシート）の最新データ ＋ まだ送れていない入力（スマホに保存）を重ねて画面に出す。
+ * 入庫・出庫・取り消し・数える・登録依頼は、圏外でもすぐ画面に反映し、電波が戻ったら送る（同じ入力は二度入らない）。 */
+const K = { cfg: 'buhin.cfg', auth: 'buhin.auth', snap: 'buhin.snap', queue: 'buhin.queue', rejected: 'buhin.rejected', recent: 'buhin.recent', staff: 'buhin.staff' };
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (_) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (_) {} },
+};
+const App = { mode: 'live', screen: 'main', cfg: null, auth: null, snap: null, queue: [], rejected: [], online: true, lastSync: '', demo: null, staffCache: [] };
+let S = { parts: [], records: [], counts: [], stocktakes: [], requests: [], staff: [], reasons: [] };
+let PMAP = {};
+const REASONS0 = ['数え間違い', '入力漏れ', '破損・廃棄', '紛失', '原因不明', '初回の在庫登録'];
+
+/* ---------- 小さな道具 ---------- */
+const pad = n => String(n).padStart(2, '0');
+const isoOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+const nowISO = () => isoOf(new Date());
+const fmtDT = s => s ? s.slice(0, 10).replace(/-/g, '/') + ' ' + s.slice(11, 16) : '';
+const fmtShort = s => s ? `${Number(s.slice(5, 7))}/${Number(s.slice(8, 10))} ${s.slice(11, 16)}` : '';
+const isToday = s => !!s && s.slice(0, 10) === nowISO().slice(0, 10);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const yen = n => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString('ja-JP');
+const signed = n => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n).toLocaleString('ja-JP');
+const sgnCls = n => n > 0 ? 'plus' : n < 0 ? 'minus' : '';
+const newId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+/* ---------- 参照 ---------- */
+const P = code => PMAP[code];
+const me = () => (App.auth && App.auth.me) || { name: '', role: '担当者' };
+const isBoss = () => me().role === '責任者';
+const active = () => S.stocktakes.find(s => s.status === '実施中') || null;
+const areaOf = p => BuhinCore.areaOf(p.shelf);
+const AREAS = () => [...new Set(S.parts.map(areaOf))].sort();
+function stock(code, opt = {}) { const p = P(code); return p ? (opt.serverOnly ? p.serverStock : p.stock) : 0; }
+function status(p) { const s = p.stock; return s <= 0 ? 'none' : s <= p.reorder ? 'low' : 'ok'; }
+const STATUS_LABEL = { ok: '在庫あり', low: '少ない', none: '在庫なし' };
+const cancelled = r => S.records.some(x => x.cancelOf === r.id);
+function canCancel(r) {
+  if (r.kind !== '入庫' && r.kind !== '出庫') return false;
+  if (cancelled(r)) return false;
+  return isBoss() || (r.staff === me().name && isToday(r.dt));
+}
+const pending = () => App.queue.length;
+// 未送信の入力は、入れた人がログインしているときだけ送る（送った人の名前で記録されるため）
+const mineOp = op => !op.by || op.by === me().name;
+const pendingMine = () => App.queue.filter(mineOp).length;
+const pendingOthers = () => App.queue.filter(op => !mineOp(op));
+
+/* ---------- サーバーのデータ ＋ 未送信の入力 → 画面用のデータ ---------- */
+function rebuild() {
+  const s = App.snap || { parts: [], records: [], counts: [], stocktakes: [], requests: [], staff: [], reasons: REASONS0 };
+  const byId = {}; s.records.forEach(r => { byId[r.id] = r; });
+  const precs = [], preqs = [];
+  App.queue.forEach(op => {
+    if (op.t === 'rec') { const r = { id: op.id, dt: op.dt, code: op.code, kind: op.kind, qty: op.qty, delta: op.kind === '出庫' ? -op.qty : op.qty, staff: op.by, memo: op.memo || '', stId: '', cancelOf: '', synced: false }; precs.push(r); byId[r.id] = r; }
+    else if (op.t === 'cxl') { const o = byId[op.of]; if (!o) return; const r = { id: op.id, dt: op.dt, code: o.code, kind: '取消', qty: o.qty, delta: -o.delta, staff: op.by, memo: `${o.id}（${o.kind}）の取り消し`, stId: '', cancelOf: o.id, synced: false }; precs.push(r); byId[r.id] = r; }
+    else if (op.t === 'req') preqs.push({ id: op.id, dt: op.dt, code: op.code, memo: op.memo || '', qty: op.qty, by: op.by, status: '未対応', synced: false });
+  });
+  const delta = {}; precs.forEach(r => { delta[r.code] = (delta[r.code] || 0) + r.delta; });
+  S.parts = s.parts.map(p => Object.assign({}, p, { serverStock: p.stock, stock: p.stock + (delta[p.code] || 0) }));
+  PMAP = {}; S.parts.forEach(p => { PMAP[p.code] = p; });
+  S.records = s.records.map(r => Object.assign({ synced: true }, r)).concat(precs);
+  S.stocktakes = s.stocktakes || [];
+  const st = S.stocktakes.find(x => x.status === '実施中');
+  const showBook = !!st && (!st.blind || isBoss());
+  S.counts = (s.counts || []).map(c => Object.assign({ synced: true }, c)).concat(App.queue.filter(op => op.t === 'cnt' && st && op.stId === st.id).map(op => ({
+    id: op.id, stId: op.stId, code: op.code, counted: op.counted, bookAt: showBook ? op.estBook : null, diff: showBook ? op.counted - op.estBook : null, dt: op.dt, staff: op.by, verdict: '', reason: '', synced: false })));
+  S.requests = (s.requests || []).concat(preqs);
+  S.staff = s.staff || [];
+  S.reasons = s.reasons || REASONS0;
+}
+
+/* ---------- 部品番号の検索（ハイフン・空白・全角/半角・大文字/小文字の違いを無視） ---------- */
+const norm = BuhinCore.norm;
+function normMap(s) { const out = [], idx = []; [...String(s)].forEach((ch, i) => { for (const c of norm(ch)) { out.push(c); idx.push(i); } }); return { str: out.join(''), idx }; }
+function search(qRaw) {
+  const q = norm(qRaw);
+  return S.parts.map(p => {
+    if (!q) return { p, score: 9 };
+    const c = norm(p.code), o = norm(p.old), sh = norm(p.shelf);
+    let score = null, on = 'code';
+    if (c === q) score = 0; else if (o && o === q) { score = 0; on = 'old'; }
+    else if (c.startsWith(q)) score = 1; else if (o && o.startsWith(q)) { score = 1; on = 'old'; }
+    else if (c.includes(q)) score = 2; else if (o && o.includes(q)) { score = 2; on = 'old'; }
+    else if (sh.startsWith(q)) { score = 3; on = 'shelf'; }
+    else if ([p.name, p.maker, p.cat].some(x => norm(x).includes(q))) { score = 4; on = 'name'; }
+    return score === null ? null : { p, score, on };
+  }).filter(Boolean).sort((a, b) => a.score - b.score || a.p.shelf.localeCompare(b.p.shelf));
+}
+function highlight(text, qRaw) {
+  const q = norm(qRaw); if (!q) return esc(text);
+  const m = normMap(text), at = m.str.indexOf(q); if (at < 0) return esc(text);
+  const ch = [...String(text)], a = m.idx[at], b = m.idx[at + q.length - 1] + 1;
+  return esc(ch.slice(0, a).join('')) + '<mark>' + esc(ch.slice(a, b).join('')) + '</mark>' + esc(ch.slice(b).join(''));
+}
+
+/* ---------- 棚卸の集計 ---------- */
+const inScope = (st, p) => st.scope.includes(areaOf(p));
+const scopeParts = st => S.parts.filter(p => inScope(st, p)).sort((a, b) => a.shelf.localeCompare(b.shelf));
+function latestCount(st, code) { let c = null; S.counts.forEach(x => { if (x.stId === st.id && x.code === code) c = x; }); return c; }
+function cstate(st, p) { // todo 未 / done 済（帳簿を隠しているとき）/ match 一致 / diff 差あり / re 数え直し待ち / okd OK済
+  const c = latestCount(st, p.code);
+  if (!c) return { s: 'todo', c: null };
+  if (c.verdict === '再カウント') return { s: 're', c };
+  if (c.diff === null || c.diff === undefined) return { s: 'done', c };
+  if (c.diff === 0) return { s: 'match', c };
+  if (c.verdict === 'OK') return { s: 'okd', c };
+  return { s: 'diff', c };
+}
+function stStats(st) {
+  const items = scopeParts(st).map(p => Object.assign({ p }, cstate(st, p)));
+  const by = s => items.filter(x => x.s === s);
+  const withDiff = items.filter(x => x.c && x.c.diff);
+  return {
+    items, total: items.length, counted: items.filter(x => x.s !== 'todo').length,
+    todo: by('todo'), diff: by('diff'), re: by('re'), okd: by('okd'), match: by('match'), withDiff,
+    qty: withDiff.reduce((a, x) => a + x.c.diff, 0), amount: withDiff.reduce((a, x) => a + x.c.diff * x.p.price, 0),
+    value: items.reduce((a, x) => a + (x.c ? x.c.counted : x.p.stock) * x.p.price, 0),
+  };
+}
+function canFinalize(st) { const s = stStats(st); return s.diff.length === 0 && s.re.length === 0 && s.counted > 0; }
+
+/* ---------- サーバーとのやりとり ---------- */
+class NetError extends Error {}
+async function apiCall(action, data = {}) {
+  const req = Object.assign({ action, key: App.mode === 'demo' ? 'demo' : (App.cfg && App.cfg.key), token: App.auth && App.auth.token }, data);
+  if (App.mode === 'demo') {
+    if (!App.online) throw new NetError('圏外（デモ）');
+    await new Promise(r => setTimeout(r, 60));
+    return JSON.parse(JSON.stringify(App.demo.server.handle(req)));
+  }
+  let res;
+  try {
+    res = await fetch(App.cfg.api, { method: 'POST', body: JSON.stringify(req), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow', cache: 'no-store' });
+  } catch (e) { throw new NetError('つながりません'); }
+  if (!res.ok) throw new NetError('サーバーの応答 ' + res.status);
+  try { return await res.json(); } catch (e) { throw new NetError('サーバーの応答が読めません'); }
+}
+function saveQueue() { LS.set(K.queue, App.queue); LS.set(K.rejected, App.rejected); }
+function enqueue(op) { op.by = me().name; App.queue.push(op); saveQueue(); rebuild(); flushSoon(); return op; }
+function addRecord(code, kind, qty, memo, ok) { return enqueue({ t: 'rec', id: newId('R'), dt: nowISO(), code, kind, qty, memo, ok: !!ok }); }
+function cancelRecord(id) { const r = S.records.find(x => x.id === id); if (!r || !canCancel(r)) return null; return enqueue({ t: 'cxl', id: newId('R'), dt: nowISO(), of: id }); }
+function addCount(code, counted) { const st = active(); return enqueue({ t: 'cnt', id: newId('C'), dt: nowISO(), stId: st.id, code, counted, estBook: stock(code) }); }
+function addRequest(code, qty, memo) { return enqueue({ t: 'req', id: newId('Q'), dt: nowISO(), code: code.normalize('NFKC').toUpperCase().trim(), qty, memo }); }
+
+let flushing = null, flushTimer = null;
+function flushSoon() { clearTimeout(flushTimer); flushTimer = setTimeout(() => { flush(); }, 150); }
+async function flush() {
+  if (flushing) return flushing;
+  flushing = (async () => {
+    try {
+      while (App.queue.some(mineOp)) {
+        const batch = App.queue.filter(mineOp).slice(0, 50);
+        const r = await apiCall('push', { ops: batch.map(op => { const o = Object.assign({}, op); delete o.estBook; delete o.by; return o; }) });
+        if (!r.ok) { handleApiError(r); return; }
+        const res = {}; r.results.forEach(x => { res[x.id] = x; });
+        const notes = r.results.filter(x => x.ok && x.note).map(x => x.note);
+        if (notes.length) toast(notes[0] + (notes.length > 1 ? `（ほか${notes.length - 1}件）` : ''));
+        let bad = 0;
+        App.queue = App.queue.filter(op => { const x = res[op.id]; if (!x) return true; if (x.ok) return false; bad++; App.rejected.push({ op, error: x.error, at: nowISO() }); return false; });
+        saveQueue();
+        if (bad) toast(`送れなかった入力が${bad}件あります（メニューで確認）`);
+      }
+      setOnline(true);
+      await refresh(true);
+    } catch (e) {
+      if (e instanceof NetError) setOnline(false); else toast('送信でエラー：' + e.message);
+    } finally { flushing = null; }
+  })();
+  return flushing;
+}
+async function refresh(quiet) {
+  try {
+    const r = await apiCall('snapshot');
+    if (!r.ok) { handleApiError(r); return false; }
+    App.snap = r; App.lastSync = nowISO(); LS.set(K.snap, r);
+    if (r.me) { App.auth.me = r.me; LS.set(K.auth, App.auth); }
+    setOnline(true); rebuild(); if (typeof renderSoft === 'function') renderSoft(); else renderAll();
+    return true;
+  } catch (e) { if (e instanceof NetError) { setOnline(false); if (!quiet) toast('圏外のため、前回の内容を表示しています'); } return false; }
+}
+function handleApiError(r) {
+  if (r.code === 'auth') { logout('ログインし直してください'); return; }
+  if (r.code === 'key' || r.code === 'setup') { App.screen = 'setup'; App.setupError = r.error; renderAll(); return; }
+  toast(r.error || 'エラーが起きました');
+}
+async function adminCall(action, data) { // 責任者の操作など：電波があるときだけ。先に未送信を送ってから行う
+  if (!App.online) await flush();
+  if (!App.online) throw new Error('圏外のため、この操作はできません。電波のある所でもう一度押してください');
+  await flush();
+  const r = await apiCall(action, data);
+  if (!r.ok) { if (r.code === 'auth') handleApiError(r); throw new Error(r.error); }
+  await refresh(true);
+  return r;
+}
+function setOnline(on) { if (App.online !== on) { App.online = on; if (typeof renderBar === 'function' && App.screen === 'main') { renderBar(); } } }
+function logout(msg) {
+  App.auth = null; LS.del(K.auth); App.screen = App.mode === 'demo' ? 'main' : 'login';
+  if (App.mode === 'demo') demoLogin('山本');
+  renderAll(); if (msg) toast(msg);
+}
+
+/* ---------- デモ（サンプルデータで、このスマホの中だけで動く） ---------- */
+function startDemo() {
+  const store = BuhinMemoryStore(BuhinSample(), { secret: 'demo' });
+  App.mode = 'demo'; App.demo = { store, server: BuhinCore.create(store) };
+  App.queue = []; App.rejected = []; App.online = true; App.screen = 'main';
+  demoLogin('山本');
+}
+function demoLogin(name) {
+  const pin = { 田中: '1111', 鈴木: '2222', 山本: '9999' }[name];
+  const r = App.demo.server.handle({ action: 'login', key: 'demo', name, pin });
+  App.auth = { token: r.token, me: r.me };
+  const s = App.demo.server.handle({ action: 'snapshot', key: 'demo', token: r.token });
+  App.snap = s; rebuild();
+}
+
+/* ================= 画面 ================= */
+const ICON = {
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  io: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v14M3 14l4 4 4-4"/><path d="M17 20V6M13 10l4-4 4 4"/></svg>',
+  count: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>',
+  hist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  sheet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 9v12"/></svg>',
+  qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM18 18h3v3"/></svg>',
+  torch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M8 2h8l-1 6H9z"/><path d="M9 8h6v4l-2 10h-2L9 12z"/></svg>',
+};
+const TABS = () => [['search', '検索', ICON.search], ['io', '入出庫', ICON.io], ['count', '棚卸', ICON.count], ['hist', '履歴', ICON.hist]].concat(App.mode === 'demo' ? [['sheet', 'シート', ICON.sheet]] : []);
+const TITLES = { search: '部品を探す', io: '入庫・出庫', count: '棚卸', hist: '履歴', sheet: 'スプレッドシート' };
+const qtyHTML = (n, p) => `${n.toLocaleString('ja-JP')}<small>${esc(p.unit)}</small>`;
+const badge = p => { const s = status(p); return `<span class="badge b-${s}">${STATUS_LABEL[s]}${p.stock < 0 ? '・要確認' : ''}</span>`; };
+const qrCache = {};
+const qrOf = (code, margin = 2) => qrCache[code + ':' + margin] || (qrCache[code + ':' + margin] = QR.svg(code, { margin, dark: '#111', light: '#fff', label: 'QRコード ' + code, ecl: 'Q', minVersion: 2 }));
+
+/* ---------- はじめての設定・ログイン ---------- */
+function viewSetup() {
+  const scan = App.setupScan;
+  return `<div class="gate"><div class="gate-in">
+    <div class="logo">${ICON.qr}</div><h2>部品在庫</h2>
+    ${App.setupError ? `<div class="warn" style="margin:10px 0">${esc(App.setupError)}</div>` : ''}
+    ${scan ? `<div class="camwrap" id="camwrap"><video id="cam" playsinline muted></video><div class="guide"></div><div class="cammsg" id="cammsg">カメラを準備しています…</div></div>
+      <button type="button" class="ghost" id="cfgScanStop">やめる</button>`
+    : `<p>このスマホで使うには、責任者がパソコンに出す<b>「スマホの設定用QR」</b>を読みます。</p>
+      <button type="button" class="primary" id="cfgScan">${ICON.qr}設定用QRを読む</button>
+      <p class="small" style="margin-top:10px">ホーム画面に追加したアイコンから開いたときも、このボタンで読んでください（iPhoneではホーム画面のアプリとSafariの設定が別々に保存されます）。</p>`}
+    <details class="manual"><summary>QRが読めないとき（リンクを貼り付ける）</summary>
+      <div class="field"><label for="cfgLink">LINEやメールで届いた設定用リンク</label><input id="cfgLink" type="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://…#setup=…"></div>
+      <button type="button" class="primary" id="cfgLinkSave" style="margin-top:12px">このリンクで始める</button>
+      <details style="margin-top:12px"><summary style="font-weight:700;font-size:13px">URLと合言葉を別々に入れる</summary>
+        <div class="field"><label for="cfgApi">ウェブアプリのURL（…/exec）</label><input id="cfgApi" type="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec"></div>
+        <div class="field"><label for="cfgKey">合言葉</label><input id="cfgKey" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+        <button type="button" class="ghost" id="cfgSave" style="margin-top:12px">この内容で始める</button></details></details>
+    <button type="button" class="ghost" id="goDemo">サンプルのデータで試す（デモ）</button>
+  </div></div>`;
+}
+function viewLogin() {
+  const list = (S.staff.length ? S.staff : App.staffCache);
+  const sel = App.loginName;
+  return `<div class="gate"><div class="gate-in">
+    <div class="logo">${ICON.qr}</div><h2>部品在庫</h2>
+    ${sel ? `<p>${esc(sel)}さんの暗証番号</p>
+      <div class="pinshow" id="pinshow">${'●'.repeat((App.pin || '').length) || '<span>4〜8けた</span>'}</div>
+      <div class="pinpad">${['1', '2', '3', '4', '5', '6', '7', '8', '9', 'del', '0', 'ok'].map(k => `<button type="button" data-pin="${k}" class="${k === 'ok' ? 'ok' : ''}" ${k === 'ok' && (App.pin || '').length < 4 ? 'disabled' : ''}>${k === 'del' ? '消す' : k === 'ok' ? 'OK' : k}</button>`).join('')}</div>
+      <button type="button" class="ghost" id="pickAgain">名前を選び直す</button>`
+    : `<p>名前を選んでください</p>
+      <div class="choices">${list.map(s => `<button type="button" data-login="${esc(s.name)}">${esc(s.name)}<small>${s.role}</small></button>`).join('') || `<div class="hint">${App.online ? '読み込み中…' : '圏外のため、名前の一覧を読めません。電波のある所で開いてください。'}</div>`}</div>`}
+    ${App.loginError ? `<div class="warn" style="margin-top:10px">${esc(App.loginError)}</div>` : ''}
+    <button type="button" class="ghost" id="resetCfg" style="margin-top:18px">このスマホの設定をやり直す</button>
+  </div></div>`;
+}
+
+/* ---------- 検索 ---------- */
+function viewSearch() {
+  const reqs = S.requests.filter(r => r.status === '未対応');
+  return `${reqs.length && isBoss() ? `<div class="notice"><span>部品の<b>登録依頼が${reqs.length}件</b>あります</span><button type="button" id="openReq">見る</button></div>` : ''}
+    <div class="sbox"><div class="sfield">${ICON.search.replace('<svg', '<svg class="mg"')}
+      <input id="q" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="部品番号・部品名・棚番" value="${esc(ui.q)}" aria-label="部品番号で探す">
+      <button type="button" class="clr" id="clr" aria-label="消す" ${ui.q ? '' : 'hidden'}>×</button>
+      <button type="button" class="qrbtn" id="scan" data-for="search">${ICON.qr}<span>読む</span></button></div>
+      <div class="chips" id="filters">${filtersHTML()}</div></div>
+    <div id="results">${resultsHTML()}</div>`;
+}
+function filtersHTML() {
+  const n = s => S.parts.filter(p => status(p) === s).length;
+  return [['all', 'すべて', S.parts.length], ['low', '少ない', n('low')], ['none', '在庫なし', n('none')]]
+    .map(([k, l, c]) => `<button type="button" data-filter="${k}" class="${ui.filter === k ? 'on' : ''}">${l}<b>${c}</b></button>`).join('');
+}
+function partRow(p, q, on) {
+  return `<button type="button" class="part" data-detail="${esc(p.code)}"><span class="nm"><span class="pn">${highlight(p.code, q)}</span>
+    <span class="meta">${on === 'shelf' ? `<b>${highlight(p.shelf, q)}</b>` : esc(p.shelf)}　${on === 'name' ? highlight(p.name, q) : esc(p.name)}　${esc(p.maker)}${on === 'old' ? `　<span class="old">旧品番 ${highlight(p.old, q)}</span>` : ''}</span></span>
+    <span class="st"><span class="q ${p.stock < 0 ? 'minus' : ''}">${qtyHTML(p.stock, p)}</span>${badge(p)}</span></button>`;
+}
+function resultsHTML() {
+  const q = ui.q.trim();
+  let list = search(q);
+  if (ui.filter !== 'all') list = list.filter(x => status(x.p) === ui.filter);
+  if (!S.parts.length) return `<div class="empty"><b>部品がまだありません</b><p>${isBoss() ? 'スプレッドシートの「部品」シートに入れるか、ここで新しく登録します。' : '責任者に部品の登録を頼んでください。'}</p></div>`;
+  if (!q && ui.filter === 'all') {
+    const rec = ui.recent.map(P).filter(Boolean);
+    return `${rec.length ? `<div class="sec2"><span>最近見た部品</span></div>${rec.map(p => partRow(p, '', 'code')).join('')}` : ''}
+      <div class="sec2"><span>すべての部品（棚番順）</span><span>${S.parts.length}点</span></div>${list.map(x => partRow(x.p, '', 'code')).join('')}`;
+  }
+  if (!list.length) {
+    return `<div class="empty"><b>${q ? `「${esc(q)}」は見つかりません` : '該当する部品はありません'}</b>
+      <p>ハイフン・空白・全角は気にしなくて大丈夫です。番号の一部だけでも探せます。</p>
+      ${q ? (isBoss() ? '<button type="button" id="newPart">この番号で新しく登録</button>' : '<button type="button" id="askReg">責任者に登録を依頼</button>') : ''}</div>`;
+  }
+  return `<div class="rcount">${list.length}件${q ? `　「${esc(q)}」` : ''}</div>${list.map(x => partRow(x.p, q, x.on)).join('')}`;
+}
+
+/* ---------- 入庫・出庫 ---------- */
+function viewIO() {
+  const f = ui.io, p = f.code ? P(f.code) : null;
+  return `<div class="kinds"><button type="button" data-kind="入庫" class="k-in ${f.kind === '入庫' ? 'on' : ''}">入庫</button><button type="button" data-kind="出庫" class="k-out ${f.kind === '出庫' ? 'on' : ''}">出庫</button></div>
+    <div class="card"><div class="lbl">部品</div>${p ? `<div class="chosen"><div class="nm"><span class="pn">${esc(p.code)}</span><small>${esc(p.shelf)}　${esc(p.name)}　いまの在庫 <b>${p.stock}</b>${esc(p.unit)}</small></div><button type="button" class="chg" id="chg">変える</button></div>`
+      : `<button type="button" class="scanbig" id="scan" data-for="io">${ICON.qr}QRコードを読む</button><div class="or">または番号を打つ</div>
+        <div class="pick">${ICON.search.replace('<svg', '<svg width="20" height="20" style="flex:none;color:var(--mute)"')}<input id="pq" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="部品番号の一部でもOK" value="${esc(f.pq)}" aria-label="部品番号を打って選ぶ"></div>
+        <div class="sugg" id="sugg">${suggHTML()}</div>`}</div>
+    ${p ? `<div class="card"><div class="lbl"><span>数量</span><span style="font-weight:500;color:var(--mute)">${f.kind === '入庫' ? '増える数' : '減る数'}</span></div>
+      <div class="counter"><button type="button" data-step="-1" aria-label="1減らす">−</button><input id="ioqty" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="${esc(f.qty)}" aria-label="数量"><button type="button" data-step="1" aria-label="1増やす">＋</button><span class="unit">${esc(p.unit)}</span></div>
+      <div class="preview" id="ioprev"></div><div id="iowarn"></div>
+      <div class="lbl" style="margin-top:12px"><label for="memo">メモ</label><span style="font-weight:500;color:var(--mute)">任意（取引先・修理番号など）</span></div>
+      <input class="memo" id="memo" type="text" autocomplete="off" placeholder="例：修理 No.1070" value="${esc(f.memo)}"></div>
+      <button type="button" class="primary" id="ioSave">${f.kind}を登録する</button>` : ''}
+    ${myToday()}`;
+}
+function suggHTML() {
+  const q = ui.io.pq.trim();
+  if (!q) return '<div class="hint">例：「1020011030」「ab1203」のように、ハイフンなしでも探せます。</div>';
+  const list = search(q).slice(0, 6);
+  if (!list.length) return `<div class="hint">「${esc(q)}」は見つかりません。${isBoss() ? '検索タブから新しく登録できます。' : '責任者に登録を依頼してください。'}</div>`;
+  return list.map(x => `<button type="button" data-pick="${esc(x.p.code)}"><span><span class="pn">${highlight(x.p.code, q)}</span><small>${esc(x.p.shelf)}　${esc(x.p.name)}</small></span><span class="q">${x.p.stock}${esc(x.p.unit)}</span></button>`).join('');
+}
+function myToday() {
+  const rs = S.records.filter(r => r.staff === me().name && isToday(r.dt) && ['入庫', '出庫', '取消'].includes(r.kind)).slice().reverse().slice(0, 8);
+  return `<div class="sec2"><span>今日の自分の入力</span><span>${rs.length}件</span></div>${rs.map(histRow).join('') || '<div class="hint" style="margin:0 2px">まだありません。登録するとここに並び、間違えたら取り消せます。</div>'}`;
+}
+function ioCheck() {
+  const f = ui.io, p = P(f.code); if (!p) return { ok: false };
+  const n = /^\d+$/.test(f.qty) ? Number(f.qty) : 0, now = p.stock, after = now + (f.kind === '出庫' ? -n : n);
+  const neg = f.kind === '出庫' && after < 0, big = n >= 100;
+  return { p, n, now, after, neg, big, ok: n >= 1 && n <= 9999 && (!neg || f.okNeg) && (!big || f.okBig) };
+}
+function refreshIO() {
+  const c = ioCheck(), pv = document.getElementById('ioprev'); if (!pv || !c.p) return;
+  pv.innerHTML = `<span class="from">在庫 ${c.now}</span><span>→</span><span class="to ${c.after < 0 ? 'minus' : ''}">${c.after}</span><span class="from">${esc(c.p.unit)}</span>`;
+  const w = document.getElementById('iowarn'), want = (c.neg ? 'n' : '') + (c.big ? 'b' : '');
+  if (w.dataset.want !== want) {
+    w.dataset.want = want;
+    w.innerHTML = (c.neg ? `<div class="warn">在庫がマイナスになります。数をもう一度確かめてください。<label><input type="checkbox" id="okNeg" ${ui.io.okNeg ? 'checked' : ''}>それでも登録する（次の棚卸で合わせる）</label></div>` : '')
+      + (c.big ? `<div class="warn">100以上の数です。桁を打ち間違えていませんか？<label><input type="checkbox" id="okBig" ${ui.io.okBig ? 'checked' : ''}>この数で合っている</label></div>` : '');
+  }
+  const b = document.getElementById('ioSave'); if (b) b.disabled = !c.ok;
+}
+
+/* ---------- 履歴 ---------- */
+function histRow(r) {
+  const p = P(r.code) || { name: '（部品シートにない番号）', unit: '' }, cx = cancelled(r);
+  const cls = r.kind === '入庫' ? 'pos' : r.kind === '出庫' ? 'neg' : r.kind === '棚卸調整' ? 'adj' : '';
+  return `<div class="hrow ${ui.newR.has(r.id) ? 'new' : ''} ${cx ? 'cx' : ''}"><span class="k k-${r.kind}">${r.kind}</span>
+    <div class="mid"><b>${ui.histQ && ui.tab === 'hist' ? highlight(r.code, ui.histQ) : esc(r.code)}　<span style="font-family:var(--font);font-weight:700">${esc(p.name)}</span></b>
+      <small>${fmtShort(r.dt)}　${esc(r.staff)}${r.memo ? '　' + esc(r.memo) : ''}</small>
+      ${cx ? '<span class="badge b-todo">取消済</span> ' : ''}${r.synced ? '' : '<span class="badge b-pend">未送信</span>'}</div>
+    <div class="q ${cls}">${signed(r.delta)}<small>${esc(p.unit)}</small></div>
+    ${canCancel(r) ? `<button type="button" class="undo" data-undo="${esc(r.id)}">取り消す</button>` : ''}</div>`;
+}
+function viewHist() {
+  return `<div class="sbox"><div class="sfield">${ICON.search.replace('<svg', '<svg class="mg"')}<input id="hq" type="search" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="部品番号でしぼる" value="${esc(ui.histQ)}" aria-label="部品番号でしぼる"></div>
+    <div class="chips">${['すべて', '入庫', '出庫', '棚卸調整', '取消', '繰越'].map(k => `<button type="button" data-hk="${k}" class="${ui.histKind === k ? 'on' : ''}">${k}</button>`).join('')}</div></div>
+    <div id="hlist">${histListHTML()}</div>`;
+}
+function histListHTML() {
+  const q = norm(ui.histQ);
+  const rs = S.records.filter(r => (ui.histKind === 'すべて' || r.kind === ui.histKind) && (!q || norm(r.code).includes(q))).slice().reverse();
+  const more = App.snap && App.snap.totalRecords > App.snap.records.length;
+  return `<div class="notice" style="display:block">記録は<b>消したり書き換えたりできません</b>。間違えたときは「取り消す」で取消の行を足します。${isBoss() ? '責任者はすべての入力を取り消せます。' : '担当者が取り消せるのは、自分の今日の入力だけです。'}</div>
+    <div class="rcount">${rs.length}件${more ? '（最近の分。古い記録はスプレッドシートで見られます）' : ''}</div>${rs.slice(0, 100).map(histRow).join('') || '<div class="hint">該当する記録はありません</div>'}`;
+}
+
+/* ---------- 棚卸 ---------- */
+function viewCount() {
+  const st = active();
+  if (!st) return viewNoStocktake();
+  const s = stStats(st), pct = s.total ? Math.round(s.counted / s.total * 100) : 0, needs = s.diff.length + s.re.length;
+  const head = `<div class="sthead"><div class="nm"><b>${esc(st.name)}</b><span class="pill p-run">実施中</span></div>
+    <div class="prog"><div class="pbar"><i style="width:${pct}%"></i></div><span class="n">${s.counted}<small> / ${s.total}点</small></span></div>
+    <div class="stchips"><span class="badge b-todo">未カウント ${s.todo.length}</span>${isBoss() || !st.blind ? `<span class="badge b-diff">差あり ${s.withDiff.length}</span>` : ''}<span class="badge b-re">数え直し ${s.re.length}</span></div>
+    ${isBoss() ? `<div class="setrow"><span>帳簿の数を担当者に見せない</span><button type="button" class="switch ${st.blind ? 'on' : ''}" id="blind" role="switch" aria-checked="${st.blind}" aria-label="帳簿の数を担当者に見せない"></button></div>` : ''}</div>`;
+  const seg = `<div class="seg3" role="tablist"><button type="button" data-sv="count" class="${ui.stView === 'count' ? 'on' : ''}">数える</button><button type="button" data-sv="diff" class="${ui.stView === 'diff' ? 'on' : ''}">差異確認${needs && isBoss() ? `<span class="dot">${needs}</span>` : ''}</button><button type="button" data-sv="fix" class="${ui.stView === 'fix' ? 'on' : ''}">確定</button></div>`;
+  let body;
+  if (ui.stView === 'count') body = viewCounting(st, s);
+  else if (!isBoss()) body = `<div class="lockview"><b>${ui.stView === 'diff' ? '差異の確認' : '棚卸の確定'}は責任者が行います</b>担当者は「数える」で入力してください。</div>`;
+  else if (ui.stView === 'diff') body = viewDiff(st, s);
+  else body = viewFix(st, s);
+  return `${head}${seg}${body}${pastHTML()}`;
+}
+function viewNoStocktake() {
+  const last = S.stocktakes.filter(s => s.status === '確定済').slice(-1)[0];
+  const done = last && ui.justFixed === last.id && last.result ? `<div class="done-card"><b>${esc(last.name)}を確定しました</b>差のあった${last.result.diffs}点に「棚卸調整」の行を足し、帳簿の在庫を数えた数に合わせました。差額 ${yen(last.result.amount)}円。</div>` : '';
+  if (!isBoss()) return `${done}<div class="lockview"><b>いまは棚卸をしていません</b>棚卸を始めるのは責任者です。始まると、ここに数える部品が並びます。</div>${pastHTML()}`;
+  const f = ui.start, d = new Date(), areas = AREAS();
+  if (!f.name) f.name = `${d.getMonth() + 1}月 棚卸`;
+  if (!f.scope) f.scope = areas.slice();
+  return `${done}<div class="card"><div class="lbl">新しい棚卸を始める</div>
+    <div class="field" style="margin-top:4px"><label for="stName">名前</label><input id="stName" type="text" autocomplete="off" value="${esc(f.name)}"></div>
+    <div class="field"><label>数える棚</label><div class="areas-pick">${areas.map(a => `<button type="button" data-scope="${a}" class="${f.scope.includes(a) ? 'on' : ''}" aria-pressed="${f.scope.includes(a)}">${a}棚（${S.parts.filter(p => areaOf(p) === a).length}点）</button>`).join('')}</div></div>
+    <div class="setrow"><span>帳簿の数を担当者に見せない<br><small style="color:var(--mute)">見えると、つい帳簿に合わせてしまうため</small></span><button type="button" class="switch ${f.blind ? 'on' : ''}" id="startBlind" role="switch" aria-checked="${f.blind}" aria-label="帳簿の数を担当者に見せない"></button></div>
+    <button type="button" class="primary" id="doStart" style="margin-top:14px" ${f.scope.length ? '' : 'disabled'}>棚卸を始める</button>
+    <div class="hint">棚卸中も入庫・出庫は入力できます。差は「数えた時点の帳簿」と比べます。</div></div>${pastHTML()}`;
+}
+function viewCounting(st, s) {
+  if (!st.scope.includes(ui.area)) ui.area = st.scope[0];
+  const showDiff = isBoss() || !st.blind, list = s.items.filter(x => areaOf(x.p) === ui.area);
+  return `<button type="button" class="scanbig" id="scan" data-for="count" style="margin-bottom:12px">${ICON.qr}QRを読んで数える</button>
+    <div class="chips">${st.scope.map(a => { const it = s.items.filter(x => areaOf(x.p) === a); return `<button type="button" data-area="${a}" class="${ui.area === a ? 'on' : ''}">${a}棚<b>${it.filter(x => x.s !== 'todo').length}/${it.length}</b></button>`; }).join('')}</div>
+    ${list.map(x => {
+      const lab = { todo: ['b-todo', '未'], done: ['b-done', '済'], match: ['b-done', '済'], diff: showDiff ? ['b-diff', '差あり'] : ['b-done', '済'], re: ['b-re', '数え直し'], okd: showDiff ? ['b-okd', 'OK済'] : ['b-done', '済'] }[x.s];
+      return `<button type="button" class="crow" data-cnt="${esc(x.p.code)}"><span class="shelf">${esc(x.p.shelf)}</span><span class="nm"><b>${esc(x.p.code)}</b><small>${esc(x.p.name)}${x.c ? `　${fmtShort(x.c.dt)} ${esc(x.c.staff)}` : ''}</small></span>
+        <span class="r">${x.c ? `<span class="q">${x.c.counted}<small style="font-size:11px;color:var(--sub)">${esc(x.p.unit)}</small></span><br>` : ''}<span class="badge ${lab[0]}">${lab[1]}</span>${showDiff && x.c && x.c.diff ? ` <span class="badge b-diff">${signed(x.c.diff)}</span>` : ''}${x.c && !x.c.synced ? ' <span class="badge b-pend">未送信</span>' : ''}</span></button>`;
+    }).join('')}`;
+}
+function viewDiff(st, s) {
+  const list = s.withDiff.concat(s.re.filter(x => !s.withDiff.includes(x))).sort((a, b) => Math.abs((b.c.diff || 0) * b.p.price) - Math.abs((a.c.diff || 0) * a.p.price));
+  const open = s.diff.length;
+  const card = x => {
+    const c = x.c, amt = (c.diff || 0) * x.p.price, cls = x.s === 're' ? 're' : x.s === 'okd' ? 'okd' : '';
+    return `<div class="dcard ${cls}"><div class="top"><span class="shelf">${esc(x.p.shelf)}</span><b>${esc(x.p.code)}</b>${x.s === 're' ? '<span class="badge b-re">数え直し待ち</span>' : x.s === 'okd' ? '<span class="badge b-okd">OK済</span>' : '<span class="badge b-diff">要確認</span>'}</div>
+      <div class="dline"><span class="bk">帳簿 ${c.bookAt}</span><span class="ar">→</span><span class="ac">数えた ${c.counted}${esc(x.p.unit)}</span><span class="df ${sgnCls(c.diff || 0)}">${signed(c.diff || 0)}</span></div>
+      <div class="dmeta">${esc(x.p.name)}　差額 <b class="${sgnCls(amt)}">${yen(amt)}円</b>　${fmtShort(c.dt)} ${esc(c.staff)}${c.synced ? '' : '　<span class="badge b-pend">未送信</span>'}</div>
+      ${x.s === 'okd' ? `<span class="reasonv">理由：${esc(c.reason)}</span> <button type="button" class="undo" data-unok="${esc(x.p.code)}">やり直す</button>` : ''}
+      ${x.s === 'diff' && c.synced ? (ui.reasonFor === x.p.code ? `<div class="reasons">${S.reasons.map(r => `<button type="button" data-reason="${esc(r)}">${esc(r)}</button>`).join('')}</div>`
+        : `<div class="acts"><button type="button" class="a-re" data-recount="${esc(x.p.code)}">もう一度数える</button><button type="button" class="a-ok" data-okc="${esc(x.p.code)}">この数でOK</button></div>`) : ''}
+      ${x.s === 're' ? `<div class="hint">最初に数えた ${esc(c.staff)} さん以外が数え直すと確実です。</div>` : ''}</div>`;
+  };
+  return `${list.length ? `<div class="hint" style="margin:0 2px 10px">差額の大きい順。1件ずつ「もう一度数える」か「この数でOK（理由）」を決めます。</div>${open >= 2 ? `<button type="button" class="ghost" id="okAll" style="margin:0 0 10px">残り${open}件をまとめてOKにする（理由を選ぶ）</button>` : ''}${ui.okAll ? `<div class="card"><div class="lbl">まとめてOKにする理由</div><div class="reasons">${S.reasons.map(r => `<button type="button" data-allreason="${esc(r)}">${esc(r)}</button>`).join('')}</div></div>` : ''}${list.map(card).join('')}`
+    : '<div class="lockview"><b>差のある部品はありません</b>数えた部品はすべて帳簿と一致しています。</div>'}
+    ${s.todo.length ? `<div class="sec2"><span>まだ数えていない部品</span><span>${s.todo.length}点</span></div><div class="card" style="padding:8px 12px">${s.todo.slice(0, 40).map(x => `<span class="shelf" style="margin:3px 4px 3px 0;display:inline-block">${esc(x.p.shelf)}</span>`).join('')}<div class="hint">確定までに数えなかった部品は、帳簿のまま（調整しない）になります。</div></div>` : ''}`;
+}
+function viewFix(st, s) {
+  const ok1 = s.diff.length === 0, ok2 = s.re.length === 0, unsent = S.counts.filter(c => !c.synced).length;
+  return `<ul class="check card">
+      <li class="${s.counted ? 'y' : 'n'}"><span class="ic">${s.counted ? '✓' : ''}</span><span>数えた部品 ${s.counted} / ${s.total}点<small>${s.todo.length ? `未カウントの${s.todo.length}点は帳簿のまま（調整しない）` : 'すべて数えました'}</small></span></li>
+      <li class="${ok1 ? 'y' : 'n'}"><span class="ic">${ok1 ? '✓' : ''}</span><span>差のある部品をすべて確認<small>${ok1 ? '確認済み' : `あと${s.diff.length}点（差異確認で決める）`}</small></span></li>
+      <li class="${ok2 ? 'y' : 'n'}"><span class="ic">${ok2 ? '✓' : ''}</span><span>数え直し待ちがない<small>${ok2 ? 'ありません' : `${s.re.length}点が数え直し待ち`}</small></span></li></ul>
+    ${unsent ? `<div class="offbar">このスマホに未送信のカウントが${unsent}件あります。送ってから確定してください。</div>` : ''}
+    <div class="kpis"><div class="kpi"><div class="k2">差のある部品</div><div class="v">${s.withDiff.length}<small>点</small></div></div>
+      <div class="kpi"><div class="k2">差額の合計</div><div class="v ${sgnCls(s.amount)}">${yen(s.amount)}<small>円</small></div></div>
+      <div class="kpi"><div class="k2">差の数の合計</div><div class="v">${signed(s.qty)}</div></div>
+      <div class="kpi"><div class="k2">確定後の在庫金額</div><div class="v">${yen(s.value)}<small>円</small></div></div></div>
+    <button type="button" class="primary" id="finalize" ${canFinalize(st) && !unsent ? '' : 'disabled'}>棚卸を確定する</button>
+    <div class="hint">確定すると、差のある部品ごとに記録シートへ「棚卸調整」の行が足され、帳簿の在庫が数えた数にそろいます。確定後は変更できません。</div>`;
+}
+function pastHTML() {
+  const done = S.stocktakes.filter(s => s.status === '確定済').slice().reverse().slice(0, 6);
+  if (!done.length) return '';
+  return `<div class="sec2"><span>過去の棚卸</span><span>${done.length}回</span></div>${done.map(s => `<div class="hcard"><div class="nm"><b>${esc(s.name)}</b><span class="pill p-done">確定済</span></div>
+    <div class="dmeta">${fmtDT(s.fixedAt)}　確定：${esc(s.fixedBy)}</div>
+    ${s.result ? `<div class="hstats"><div><small>数えた</small><b>${s.result.counted}点</b></div><div><small>差あり</small><b>${s.result.diffs}点</b></div><div><small>差額</small><b class="${sgnCls(s.result.amount)}">${yen(s.result.amount)}円</b></div></div>` : ''}</div>`).join('')}`;
+}
+
+/* ---------- スプレッドシート（デモ：このスマホの中のデータをそのまま見せる） ---------- */
+function viewSheet() {
+  return `<div class="intro"><small>部品在庫｜スプレッドシートのイメージ</small><h2>Googleスプレッドシートに入る中身</h2>
+    <p>本番では、このとおりの行がスプレッドシートに追加されます（デモなので、このページの中だけで動いています）。</p></div>${sheetHTML()}`;
+}
+function sheetHTML() {
+  if (App.mode !== 'demo') return '';
+  const tabs = ['部品', '記録', '棚卸', 'カウント', '担当者', '登録依頼'];
+  const cols = BuhinCore.COLS[ui.ssTab] || BuhinCore.COLS['記録'];
+  const rows = App.demo.store.tables[ui.ssTab] || [];
+  const fmt = (h, v) => { if (v === true) return 'TRUE'; if (v === false) return 'FALSE'; if (BuhinCore.DATE_COLS[h] && v) return fmtDT(String(v)) + String(v).slice(16, 19); if (h === '暗証番号') return '••••'; return esc(v); };
+  const num = h => ['数量', '増減', '発注点', '単価', '数えた数', '帳簿数', '差', '数', '数えた部品', '差のある部品', '差額'].includes(h);
+  const fresh = id => ui.newR.has(id) || ui.newC.has(id);
+  const body = rows.map((r, i) => `<tr class="${fresh(r[cols[0]]) ? 'new' : ''}"><td class="rn">${i + 2}</td>${cols.map(h => `<td class="${num(h) ? 'n' : ''} ${h === '区分' ? 'kk-' + esc(r[h]) : ''} ${h === '差' || h === '増減' ? sgnCls(Number(r[h]) || 0) : ''}">${fmt(h, r[h])}</td>`).join('')}</tr>`).join('');
+  return `<div class="ss"><div class="ss-head"><span class="ss-ic">${ICON.sheet}</span><div><b>部品在庫（Googleスプレッドシート）</b><small>${ui.ssTab}シート：${rows.length}行</small></div></div>
+    <div class="ss-tabs" role="tablist">${tabs.map(t => `<button type="button" data-sstab="${t}" class="${ui.ssTab === t ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <div class="ss-body" id="ssbody"><table class="grid"><thead><tr><th></th>${cols.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>
+    <div class="legend"><span><i style="background:var(--new-bg)"></i>このデモで追加した行</span><span>記録は追加だけ。在庫数は「増減」の合計です。</span>${pending() ? `<span style="color:var(--re);font-weight:800">スマホに未送信 ${pending()}件（まだシートに届いていません）</span>` : ''}</div></div>`;
+}
+
+/* ================= カメラでQRを読む =================
+ * スマホのカメラ映像の真ん中を切り出し、読み取りを試し続ける。
+ * Androidの Chrome にある読み取り機能（BarcodeDetector）があれば使い、なければアプリ内の読み取り（QRDecode）を別スレッドで動かす。 */
+const Scanner = (() => {
+  let stream = null, video = null, raf = 0, busy = false, worker = null, onCode = null, canvas = null, ctx = null, detector = null, stopped = true, lastTry = 0, tries = 0;
+  function makeWorker() {
+    try {
+      const src = document.getElementById('qrdecode-src').textContent;
+      const glue = '\nself.onmessage = function (e) { var d = e.data, r = null; try { r = QRDecode.decode({ data: new Uint8ClampedArray(d.buf), width: d.w, height: d.h }); } catch (_) {} self.postMessage({ text: r ? r.text : null }); };';
+      return new Worker(URL.createObjectURL(new Blob([src + glue], { type: 'text/javascript' })));
+    } catch (_) { return null; }
+  }
+  const available = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.isSecureContext);
+  async function start(videoEl, cb) {
+    stop();
+    onCode = cb; video = videoEl; stopped = false; tries = 0;
+    stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
+    if (stopped) { stream.getTracks().forEach(t => t.stop()); stream = null; return; }
+    video.srcObject = stream; video.setAttribute('playsinline', ''); video.muted = true;
+    await video.play();
+    if (!detector && 'BarcodeDetector' in window) {
+      try { const f = await window.BarcodeDetector.getSupportedFormats(); if (f.includes('qr_code')) detector = new window.BarcodeDetector({ formats: ['qr_code'] }); } catch (_) { detector = null; }
+    }
+    if (!detector && !worker) worker = makeWorker();
+    canvas = canvas || document.createElement('canvas');
+    ctx = ctx || canvas.getContext('2d', { willReadFrequently: true });
+    loop();
+  }
+  function loop() {
+    if (stopped) return;
+    raf = requestAnimationFrame(loop);
+    const now = performance.now();
+    if (busy || now - lastTry < 110 || !video || !video.videoWidth) return;
+    lastTry = now; busy = true; tries++;
+    const vw = video.videoWidth, vh = video.videoHeight, side = Math.min(vw, vh) * 0.85, sx = (vw - side) / 2, sy = (vh - side) / 2;
+    const size = Math.min(720, Math.round(side));
+    canvas.width = size; canvas.height = size;
+    ctx.drawImage(video, sx, sy, side, side, 0, 0, size, size);
+    if (detector) {
+      detector.detect(canvas).then(list => { busy = false; if (list && list[0] && list[0].rawValue) found(list[0].rawValue); })
+        .catch(() => { busy = false; detector = null; if (!worker) worker = makeWorker(); });
+      return;
+    }
+    const img = ctx.getImageData(0, 0, size, size);
+    if (worker) {
+      worker.onmessage = e => { busy = false; if (e.data && e.data.text) found(e.data.text); };
+      worker.onerror = () => { worker = null; busy = false; };
+      worker.postMessage({ w: size, h: size, buf: img.data.buffer }, [img.data.buffer]);
+    } else {
+      setTimeout(() => { let r = null; try { r = QRDecode.decode(img); } catch (_) {} busy = false; if (r) found(r.text); }, 0);
+    }
+  }
+  function found(text) {
+    if (stopped) return;
+    const cb = onCode; stop(); beep();
+    try { if (navigator.vibrate) navigator.vibrate(60); } catch (_) {}
+    if (cb) cb(String(text).trim());
+  }
+  function stop() {
+    stopped = true; cancelAnimationFrame(raf); busy = false;
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = null;
+    if (video) { try { video.srcObject = null; } catch (_) {} }
+  }
+  function hasTorch() { const t = stream && stream.getVideoTracks()[0]; try { return !!(t && t.getCapabilities && t.getCapabilities().torch); } catch (_) { return false; } }
+  async function torch(on) { const t = stream && stream.getVideoTracks()[0]; if (!t) return false; try { await t.applyConstraints({ advanced: [{ torch: on }] }); return true; } catch (_) { return false; } }
+  let ac = null;
+  function beep() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = 1150; g.gain.value = 0.06; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 0.08); } catch (_) {} }
+  return { available, start, stop, hasTorch, torch, get tries() { return tries; } };
+})();
+
+/* ================= 描画と操作 ================= */
+const WIDE = window.matchMedia('(min-width: 900px)');
+const isWide = () => WIDE.matches;
+const UNITS = ['個', '本', 'セット', '袋', '缶', '枚', '箱', 'm', 'L'];
+const ui = { tab: 'search', q: '', filter: 'all', recent: LS.get(K.recent, []), io: { kind: '出庫', code: '', qty: '1', memo: '', pq: '', okNeg: false, okBig: false },
+  stView: 'count', area: 'A', pop: null, newR: new Set(), newC: new Set(), ssTab: '記録', histKind: 'すべて', histQ: '', start: { name: '', scope: null, blind: true }, cin: '', reasonFor: null, okAll: false, justFixed: null };
+
+function renderBar() {
+  const bar = document.getElementById('bar'); if (!bar) return;
+  const u = me(), pend = pending(), bad = App.rejected.length;
+  const net = !App.online ? `圏外${pend ? `・未送信 ${pend}` : ''}` : pend ? `未送信 ${pend}` : bad ? `送れなかった ${bad}` : '';
+  bar.innerHTML = `<div class="tt"><h1>${TITLES[ui.tab]}</h1><div class="sub">${App.mode === 'demo' ? 'デモ・' : ''}${esc(u.name)}（${u.role}）</div></div>
+    ${net ? `<button type="button" class="chipbtn ${!App.online || bad ? 'off' : ''}" id="net">${net}</button>` : ''}
+    <button type="button" class="chipbtn" id="menu" aria-label="メニュー"><span class="av">${esc((u.name || '?')[0])}</span><span class="nm">${esc(u.name)}</span><span aria-hidden="true">▾</span></button>`;
+  document.documentElement.style.setProperty('--bar-h', bar.offsetHeight + 'px');
+}
+function renderNav() {
+  const st = active(), s = st ? stStats(st) : null, dot = st && isBoss() ? s.diff.length + s.re.length : 0;
+  document.getElementById('nav').innerHTML = TABS().map(([k, l, i]) =>
+    `<button type="button" data-tab="${k}" class="${ui.tab === k ? 'on' : ''}" ${ui.tab === k ? 'aria-current="page"' : ''}>${i}${l}${k === 'count' && dot ? `<span class="dot">${dot}</span>` : ''}</button>`).join('');
+}
+
+/* ---------- 全画面のレイヤー ---------- */
+function popHTML() {
+  const t = ui.pop.type;
+  const head = title => `<div class="pophead"><button type="button" class="back" data-close="1">${t === 'detail' ? '‹ 戻る' : '閉じる'}</button><span class="ttl">${esc(title)}</span></div>`;
+  if (t === 'detail') {
+    const p = P(ui.pop.code); if (!p) return head('部品の詳細') + '<div class="hint">この部品は見つかりません。</div>';
+    const st = active();
+    let bal = p.stock;
+    const rows = S.records.filter(r => r.code === p.code).reverse().slice(0, 12).map(r => { const o = { r, bal }; bal -= r.delta; return o; });
+    return `${head('部品の詳細')}<div class="dhead"><div class="pn">${esc(p.code)}</div><div class="nm">${esc(p.name)}</div>
+        <div class="tags">${p.cat ? `<span class="tag">${esc(p.cat)}</span>` : ''}${p.maker ? `<span class="tag">${esc(p.maker)}</span>` : ''}${p.old ? `<span class="tag">旧品番 ${esc(p.old)}</span>` : ''}</div></div>
+      <div class="stockbox"><div><div class="k2">いまの在庫</div><div class="big ${p.stock < 0 ? 'minus' : ''}">${p.stock}<small>${esc(p.unit)}</small></div>${badge(p)}</div>
+        <div><div class="k2">置き場所（棚番）</div><div class="shelfbig">${esc(p.shelf)}</div></div></div>
+      <div class="facts"><div><small>発注点</small><b>${p.reorder}${esc(p.unit)}</b></div><div><small>単価</small><b>${yen(p.price)}円</b></div><div><small>在庫金額</small><b>${yen(Math.max(0, p.stock) * p.price)}円</b></div></div>
+      <div class="dacts"><button type="button" class="a-in" data-goio="入庫">入庫</button><button type="button" class="a-out" data-goio="出庫">出庫</button></div>
+      ${st && inScope(st, p) ? `<button type="button" class="a-count" data-cnt="${esc(p.code)}">この部品を数える（${esc(st.name)}）</button>` : ''}
+      <div class="sec2"><span>最近の動き</span><span>新しい順</span></div>
+      ${rows.length ? `<table class="ledger"><tr><th>日時</th><th>区分</th><th>増減</th><th>残り</th><th>入力</th></tr>
+        ${rows.map(({ r, bal }) => `<tr class="${cancelled(r) ? 'cx' : ''}"><td>${fmtShort(r.dt)}${r.synced ? '' : ' *'}</td><td><span class="k k-${r.kind}">${r.kind}</span></td><td class="${r.delta > 0 ? 'pos' : r.delta < 0 ? 'neg' : ''}"><b>${signed(r.delta)}</b></td><td><b>${bal}</b></td><td class="who">${esc(r.staff)}</td></tr>`).join('')}</table>` : '<div class="hint">最近の動きはありません。</div>'}
+      <div class="sec2"><span>棚に貼るQRラベル</span><span>スマホのカメラで読めます</span></div>
+      <div class="qrlabel">${qrOf(p.code)}<div><b>${esc(p.code)}</b><span>${esc(p.name)}　棚番 ${esc(p.shelf)}</span></div></div>`;
+  }
+  if (t === 'scan') {
+    const st = active(), f = ui.pop.for;
+    const demoList = App.mode === 'demo' ? (f === 'count' && st ? scopeParts(st).filter(p => areaOf(p) === ui.area) : S.parts) : [];
+    return `${head('QRコードを読む')}
+      <div class="camwrap" id="camwrap"><video id="cam" playsinline muted></video><div class="guide"></div><div class="cammsg" id="cammsg">カメラを準備しています…</div>
+        <button type="button" class="torch" id="torch" hidden>${ICON.torch}ライト</button></div>
+      <div id="scanres"></div>
+      <div class="lbl" style="margin-top:12px"><span>読めないときは番号を打つ</span></div>
+      <div class="pick">${ICON.search.replace('<svg', '<svg width="20" height="20" style="flex:none;color:var(--mute)"')}<input id="sq" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="部品番号の一部でもOK" aria-label="部品番号を打つ"></div>
+      <div class="sugg" id="ssugg"></div>
+      ${demoList.length ? `<div class="sec2"><span>デモ用のラベル（タップで読んだことにする）</span></div><div class="labels">${demoList.map(p => `<button type="button" class="lab" data-scan="${esc(p.code)}">${qrOf(p.code, 1)}<span><b>${esc(p.code)}</b><small>${esc(p.shelf)} ${esc(p.name)}</small></span></button>`).join('')}</div>` : ''}`;
+  }
+  if (t === 'cnt') {
+    const st = active(), p = P(ui.pop.code), x = cstate(st, p), showBook = !st.blind || isBoss(), nxt = nextToCount(p);
+    return `${head(`${st.name}：数える`)}
+      <div class="sub"><span class="shelf">${esc(p.shelf)}</span>　${esc(p.name)}</div><h4 class="mono">${esc(p.code)}</h4>
+      ${x.s === 're' ? `<div class="reneed">数え直しの依頼が出ています。もう一度数えてください${showBook ? `（前回 ${x.c.counted}${esc(p.unit)}・${esc(x.c.staff)}）` : ''}。</div>` : ''}
+      <div class="bk"><span>帳簿の数（いま）</span>${showBook ? `<b>${p.stock} ${esc(p.unit)}</b>` : '<span class="hid">非表示</span>'}</div>
+      <div class="lbl" style="margin-top:6px"><span>棚にある数</span><button type="button" class="zero" id="zero">見つからない（0）</button></div>
+      <div class="counter"><button type="button" data-cstep="-1" aria-label="1減らす">−</button><input id="cin" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0" value="${esc(ui.cin)}" aria-label="棚にある数"><button type="button" data-cstep="1" aria-label="1増やす">＋</button><span class="unit">${esc(p.unit)}</span></div>
+      ${showBook ? '<div class="dprev" id="dprev" hidden></div>' : ''}
+      <button type="button" class="primary" id="cntSave" style="margin-top:12px" disabled>${nxt ? '入力して次の部品へ' : '入力する'}</button>
+      ${nxt ? `<div class="hint">次は <span class="shelf">${esc(nxt.shelf)}</span> ${esc(nxt.code)}</div>` : ''}
+      ${x.c && x.s !== 're' ? `<div class="hint">この部品は入力済み（${fmtShort(x.c.dt)} ${esc(x.c.staff)}${showBook ? `・${x.c.counted}${esc(p.unit)}` : ''}）。入力し直すと新しい数を使い、前の行も残ります。</div>` : ''}
+      ${!App.online ? '<div class="hint">圏外のため、スマホに保存して電波が戻ったら送ります。</div>' : ''}`;
+  }
+  if (t === 'menu') {
+    const bad = App.rejected;
+    return `${head('メニュー')}<h4>${esc(me().name)}さん（${me().role}）</h4>
+      <div class="sub">${App.mode === 'demo' ? 'デモ：サンプルのデータで、このスマホの中だけで動いています。' : `最後に最新にした時刻：${App.lastSync ? fmtShort(App.lastSync) : 'まだ'}`}</div>
+      <div class="menu-sec"><h5>送信</h5>
+        <div class="setrow" style="margin-top:0;border-top:0;padding-top:0"><span>${App.online ? '電波あり' : '圏外'}・未送信 ${pending()}件</span><button type="button" class="chg" id="syncNow">今すぐ送る・最新にする</button></div>
+        ${pendingOthers().length ? `<div class="hint" style="margin-top:6px">このうち ${[...new Set(pendingOthers().map(o => o.by))].map(n => esc(n) + 'さん').join('・')}の ${pendingOthers().length}件は、その人がこのスマホでログインすると送られます。</div>` : ''}
+        ${bad.length ? `<div class="warn" style="margin-top:8px">送れなかった入力 ${bad.length}件（内容を確かめて、必要なら入れ直してください）</div>${bad.map((b, i) => `<div class="hrow"><div class="mid"><b>${esc(opLabel(b.op))}</b><small>${fmtShort(b.op.dt)}　理由：${esc(b.error)}</small></div><button type="button" class="undo" data-dropbad="${i}">消す</button></div>`).join('')}` : ''}</div>
+      ${App.mode === 'demo' ? `<div class="menu-sec"><h5>ログインを切り替える（デモ）</h5><div class="choices">${['田中', '鈴木', '山本'].map(n => `<button type="button" data-demouser="${n}" class="${me().name === n ? 'on' : ''}">${n}<small>${n === '山本' ? '責任者・棚卸の確定、部品の登録、すべての取り消し' : '担当者・検索、入庫・出庫、数える'}（暗証番号 ${{ 田中: '1111', 鈴木: '2222', 山本: '9999' }[n]}）</small></button>`).join('')}</div></div>
+        <div class="menu-sec"><h5>電波（デモ）</h5><div class="setrow" style="margin-top:0;border-top:0;padding-top:0"><span>圏外にする（入力はスマホに保存）</span><button type="button" class="switch ${App.online ? '' : 'on'}" id="net2" role="switch" aria-checked="${!App.online}" aria-label="圏外にする"></button></div></div>
+        <div class="menu-sec"><button type="button" class="ghost" id="demoReset">デモを最初の状態に戻す</button><button type="button" class="ghost" id="leaveDemo">本番の設定に進む</button></div>`
+      : `${isBoss() ? '<div class="menu-sec"><h5>QRラベル</h5><a class="ghost linkbtn" href="labels.html" target="_blank" rel="noopener">QRラベルを印刷する（パソコンで開く）</a></div>' : ''}<div class="menu-sec"><button type="button" class="ghost" id="logout">ログアウト（担当者を替える）</button><button type="button" class="ghost" id="resetCfg">このスマホの設定をやり直す</button></div>`}`;
+  }
+  if (t === 'newpart') {
+    return `${head('部品の登録')}<h4>新しい部品を登録</h4><div class="sub">登録すると、すぐに検索・入庫・出庫で使えます。QRラベルは詳細画面に出ます。</div>
+      <div class="field"><label for="np-code">部品番号（QRの中身になります）</label><input id="np-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" value="${esc(ui.pop.code || '')}"></div>
+      <div class="field"><label for="np-name">部品名</label><input id="np-name" type="text" autocomplete="off"></div>
+      <div class="field2"><div class="field"><label for="np-maker">メーカー</label><input id="np-maker" type="text" autocomplete="off"></div><div class="field"><label for="np-cat">分類</label><input id="np-cat" type="text" autocomplete="off"></div></div>
+      <div class="field2"><div class="field"><label for="np-shelf">棚番</label><input id="np-shelf" type="text" autocomplete="off" autocapitalize="characters" placeholder="例：C-09"></div><div class="field"><label for="np-unit">単位</label><select id="np-unit">${UNITS.map(u => `<option>${u}</option>`).join('')}</select></div></div>
+      <div class="field2"><div class="field"><label for="np-reorder">発注点</label><input id="np-reorder" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div><div class="field"><label for="np-price">単価（円）</label><input id="np-price" type="text" inputmode="numeric" pattern="[0-9]*" value="0"></div></div>
+      <div class="field"><label for="np-old">旧品番（任意）</label><input id="np-old" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+      <div id="np-err"></div>
+      <button type="button" class="primary" id="npSave" style="margin-top:16px">登録する</button>
+      <div class="hint">在庫は0で始まります。棚にある分は「入庫」で入れてください。登録には電波が必要です。</div>`;
+  }
+  if (t === 'ask') {
+    return `${head('登録の依頼')}<h4>部品の登録を依頼</h4><div class="sub">登録されていない部品を見つけたら、責任者に登録を頼みます。登録されるまで入庫・出庫はできません。</div>
+      <div class="field"><label for="ask-code">部品番号（ラベルや箱の番号）</label><input id="ask-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" value="${esc(ui.pop.code || '')}"></div>
+      <div class="field"><label for="ask-qty">あった数</label><input id="ask-qty" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div>
+      <div class="field"><label for="ask-memo">メモ（どこにあったか、見た目など）</label><input id="ask-memo" type="text" autocomplete="off" placeholder="例：C棚の下の段ボール"></div>
+      <button type="button" class="primary" id="askSave" style="margin-top:16px">依頼する</button>`;
+  }
+  if (t === 'reqs') {
+    const rs = S.requests.filter(r => r.status === '未対応');
+    return `${head('登録依頼')}<h4>部品の登録依頼</h4><div class="sub">担当者が見つけた、まだ登録されていない部品です。</div>
+      ${rs.map(r => `<div class="card" style="margin-top:10px"><div class="chosen"><div class="nm"><span class="pn">${esc(r.code)}</span><small>${fmtShort(r.dt)}　${esc(r.by)}　${r.qty}点${r.memo ? '　' + esc(r.memo) : ''}</small></div>${r.synced === false ? '<span class="badge b-pend">未送信</span>' : `<button type="button" class="chg" data-reg="${esc(r.id)}">登録する</button>`}</div></div>`).join('') || '<div class="hint">未対応の依頼はありません。</div>'}`;
+  }
+  if (t === 'undo') {
+    const r = S.records.find(x => x.id === ui.pop.id); if (!r) return head('取り消し');
+    const p = P(r.code) || { unit: '' };
+    return `${head('取り消し')}<h4>この入力を取り消しますか？</h4>
+      <div class="card" style="margin-top:10px">${histRow(r).replace(/<button[^>]*data-undo[^>]*>.*?<\/button>/, '')}</div>
+      <div class="confirm">元の行は消さずに「取消」の行を足します。在庫は ${p.stock} → ${p.stock - r.delta}${esc(p.unit)} に戻ります。</div>
+      <div class="btn2"><button type="button" class="sub-b" data-close="1">やめる</button><button type="button" class="primary" id="doUndo">取り消す</button></div>`;
+  }
+  if (t === 'fin') {
+    const st = active(), s = stStats(st);
+    return `${head('確定の確認')}<h4>${esc(st.name)}を確定しますか？</h4>
+      <div class="confirm">確定すると変更できません。記録シートに「棚卸調整」の行を${s.withDiff.length}行足し、帳簿の在庫を数えた数にそろえます。</div>
+      <div class="hint">確定者：${esc(me().name)}　差額の合計：${yen(s.amount)}円${s.todo.length ? `　未カウント${s.todo.length}点は帳簿のまま` : ''}</div>
+      <div class="btn2" style="margin-top:14px"><button type="button" class="sub-b" data-close="1">やめる</button><button type="button" class="primary" id="doFinalize">確定する</button></div>`;
+  }
+  return '';
+}
+function opLabel(op) {
+  if (op.t === 'rec') return `${op.kind} ${op.code} ${op.qty}`;
+  if (op.t === 'cxl') return `取り消し（${op.of}）`;
+  if (op.t === 'cnt') return `数えた ${op.code} ${op.counted}`;
+  if (op.t === 'req') return `登録依頼 ${op.code}`;
+  return op.t;
+}
+function nextToCount(p) {
+  const st = active(); if (!st) return null;
+  const list = scopeParts(st).filter(x => areaOf(x) === areaOf(p)), i = list.findIndex(x => x.code === p.code);
+  return list.slice(i + 1).find(x => ['todo', 're'].includes(cstate(st, x).s)) || null;
+}
+function refreshCnt() {
+  if (!ui.pop || ui.pop.type !== 'cnt') return;
+  const p = P(ui.pop.code), v = ui.cin === '' ? null : Number(ui.cin), book = p.stock;
+  const inp = document.getElementById('cin'); if (inp && inp.value !== ui.cin) inp.value = ui.cin;
+  const dp = document.getElementById('dprev');
+  if (dp) { dp.hidden = v === null; if (v !== null) { dp.className = 'dprev ' + (v === book ? 'd0' : 'dx'); dp.textContent = v === book ? '帳簿と一致しています' : `帳簿と ${signed(v - book)}${p.unit} ちがいます。もう一度数えてもOK。`; } }
+  const b = document.getElementById('cntSave'); if (b) b.disabled = v === null;
+}
+
+/* ---------- カメラ ---------- */
+function partFromScan(text) {
+  const n = norm(text);
+  return S.parts.find(p => norm(p.code) === n) || S.parts.find(p => p.old && norm(p.old) === n) || null;
+}
+async function startCamera() {
+  const video = document.getElementById('cam'), msg = document.getElementById('cammsg');
+  if (!video) return;
+  if (!Scanner.available()) { msg.textContent = 'この画面ではカメラが使えません。下に番号を打ってください。'; document.getElementById('camwrap').classList.add('nocam'); return; }
+  try {
+    await Scanner.start(video, onScanned);
+    msg.textContent = 'QRを枠の中に入れてください';
+    const tb = document.getElementById('torch'); if (tb && Scanner.hasTorch()) tb.hidden = false;
+  } catch (e) {
+    document.getElementById('camwrap').classList.add('nocam');
+    msg.textContent = e && e.name === 'NotAllowedError' ? 'カメラの使用が許可されていません。ブラウザの設定でカメラを「許可」にしてください。下に番号を打っても探せます。' : 'カメラを開けませんでした。下に番号を打ってください。';
+  }
+}
+function onScanned(text) {
+  const p = partFromScan(text);
+  if (!p) {
+    const res = document.getElementById('scanres');
+    if (res) res.innerHTML = `<div class="warn">読み取った「${esc(text)}」は登録されていない番号です。${isBoss() ? `<button type="button" class="chg" id="scanNew" style="margin-left:6px">登録する</button>` : `<button type="button" class="chg" id="scanAsk" style="margin-left:6px">登録を依頼</button>`}</div>`;
+    ui.lastScan = text;
+    setTimeout(() => { if (ui.pop && ui.pop.type === 'scan') startCamera(); }, 1800);
+    return;
+  }
+  usePart(p.code, '読み取りました');
+}
+function usePart(code, how) {
+  const f = ui.pop && ui.pop.for;
+  if (f === 'io') { closePop(); pickIO(code); toast(`${how}：${code}`); return; }
+  if (f === 'count') { toast(`${how}：${code}`); openCount(code); return; }
+  ui.q = code; renderApp(); openDetail(code); toast(`${how}：${code}`);
+}
+
+/* ---------- render ---------- */
+function renderAll() {
+  const page = document.getElementById('page');
+  page.classList.toggle('live', App.mode !== 'demo');
+  page.classList.toggle('gated', App.screen !== 'main');
+  if (App.screen !== 'main') {
+    Scanner.stop();
+    document.getElementById('bar').innerHTML = ''; document.getElementById('nav').innerHTML = '';
+    document.getElementById('content').innerHTML = App.screen === 'setup' ? viewSetup() : viewLogin();
+    document.getElementById('ssPanel').innerHTML = '';
+    ui.pop = null; renderLayer();
+    return;
+  }
+  renderApp(); renderSide();
+}
+function renderApp() {
+  if (ui.tab === 'sheet' && (isWide() || App.mode !== 'demo')) ui.tab = 'search';
+  renderBar(); renderNav();
+  document.getElementById('content').innerHTML = { search: viewSearch, io: viewIO, count: viewCount, hist: viewHist, sheet: viewSheet }[ui.tab]();
+  if (ui.tab === 'io') refreshIO();
+  renderLayer();
+}
+function renderSoft() { // 裏で最新にしたとき：入力中の欄は描き直さず、結果の部分だけ入れ替える
+  if (App.screen !== 'main') { renderAll(); return; }
+  if (ui.tab === 'sheet' && (isWide() || App.mode !== 'demo')) ui.tab = 'search';
+  renderBar(); renderNav(); renderSide();
+  const a = document.activeElement, content = document.getElementById('content');
+  const typing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT') && content.contains(a);
+  if (!typing) { const y = window.scrollY, cy = content.scrollTop; content.innerHTML = { search: viewSearch, io: viewIO, count: viewCount, hist: viewHist, sheet: viewSheet }[ui.tab](); if (ui.tab === 'io') refreshIO(); window.scrollTo(0, y); content.scrollTop = cy; }
+  else if (ui.tab === 'search') { const r = document.getElementById('results'), f = document.getElementById('filters'); if (r) r.innerHTML = resultsHTML(); if (f) f.innerHTML = filtersHTML(); }
+  else if (ui.tab === 'io') { const g = document.getElementById('sugg'); if (g) g.innerHTML = suggHTML(); refreshIO(); }
+  else if (ui.tab === 'hist') { const h = document.getElementById('hlist'); if (h) h.innerHTML = histListHTML(); }
+  renderLayer();
+}
+function renderSide() { document.getElementById('ssPanel').innerHTML = isWide() && App.mode === 'demo' ? sheetHTML() : ''; }
+let histPop = false;
+function renderLayer(force) {
+  const layer = document.getElementById('layer');
+  if (!ui.pop) {
+    Scanner.stop();
+    layer.hidden = true; layer.innerHTML = ''; layer.dataset.key = ''; document.documentElement.classList.remove('lock');
+    if (histPop) { histPop = false; try { history.back(); } catch (_) {} }
+    return;
+  }
+  // 同じ画面を開いたままなら描き直さない（入力中のキーボードやカメラの映像を止めないため）
+  const key = [ui.pop.type, ui.pop.code || '', ui.pop.id || '', ui.pop.for || ''].join(':');
+  if (force || layer.dataset.key !== key || !layer.innerHTML) { layer.innerHTML = `<div class="pop" role="dialog" aria-modal="true">${popHTML()}</div>`; layer.dataset.key = key; }
+  layer.hidden = false; document.documentElement.classList.add('lock');
+  if (!histPop) { try { history.pushState({ buhinPop: 1 }, ''); histPop = true; } catch (_) {} }
+  refreshCnt();
+}
+window.addEventListener('popstate', () => { if (histPop) { histPop = false; if (ui.pop) { ui.pop = null; renderLayer(); } } });
+function goTop() { if (isWide()) document.getElementById('content').scrollTop = 0; else window.scrollTo(0, 0); }
+let toastT;
+function toast(msg) { const t = document.getElementById('toast'); if (!t) return; t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2800); }
+function openPop(pop) { if (ui.pop && ui.pop.type === 'scan') Scanner.stop(); ui.pop = pop; renderLayer(true); }
+function closePop() { ui.pop = null; renderLayer(); }
+function openDetail(code) { ui.recent = [code, ...ui.recent.filter(c => c !== code)].slice(0, 5); LS.set(K.recent, ui.recent); openPop({ type: 'detail', code }); }
+function openCount(code) {
+  const st = active(), p = P(code);
+  if (!st || !p || !inScope(st, p)) { toast('この部品は今の棚卸の範囲外です'); return; }
+  ui.area = areaOf(p); ui.cin = ''; openPop({ type: 'cnt', code });
+  const i = document.getElementById('cin'); if (i) i.focus();
+}
+function pickIO(code) {
+  Object.assign(ui.io, { code, qty: '1', pq: '', okNeg: false, okBig: false });
+  ui.tab = 'io'; renderApp(); renderSide();
+  const q = document.getElementById('ioqty'); if (q) { q.focus(); q.select(); }
+}
+function scrollSheetToBottom() { const b = document.getElementById('ssbody'); if (b && ['記録', 'カウント'].includes(ui.ssTab)) b.scrollTop = b.scrollHeight; }
+const digits = (el, max = 5) => { const v = el.value.normalize('NFKC').replace(/\D/g, '').slice(0, max); if (v !== el.value) el.value = v; return v; };
+async function busy(btn, fn) { // 送信中はボタンを押せなくする
+  if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = '送信中…'; }
+  try { await fn(); } catch (e) { toast(e.message || String(e)); if (btn && btn.isConnected) { btn.disabled = false; btn.textContent = btn.dataset.label; } }
+}
+function afterLocal(kind) { ui.ssTab = kind; renderAll(); scrollSheetToBottom(); }
+
+/* ---------- ログイン・設定 ---------- */
+async function loadStaff() {
+  try { const r = await apiCall('staff'); if (r.ok) { App.staffCache = r.staff; LS.set(K.staff, r.staff); App.setupError = ''; setOnline(true); } else handleApiError(r); }
+  catch (e) { setOnline(false); }
+  if (App.screen === 'login') renderAll();
+}
+async function doLogin() {
+  try {
+    const r = await apiCall('login', { name: App.loginName, pin: App.pin });
+    if (!r.ok) { App.loginError = r.error; App.pin = ''; renderAll(); return; }
+    App.auth = { token: r.token, me: r.me }; LS.set(K.auth, App.auth);
+    App.loginName = ''; App.pin = ''; App.loginError = ''; App.screen = 'main';
+    rebuild(); renderAll(); await flush(); await refresh(true);
+    toast(`${r.me.name}さん、ログインしました`);
+  } catch (e) { App.loginError = '電波がないためログインできません。電波のある所でもう一度。'; renderAll(); }
+}
+function resetConfig() {
+  [K.cfg, K.auth, K.snap, K.staff].forEach(LS.del);
+  if (App.queue.length) toast(`未送信の入力が${App.queue.length}件ありましたが、このスマホの設定を消しました`);
+  App.queue = []; App.rejected = []; saveQueue();
+  App.cfg = null; App.auth = null; App.snap = null; App.mode = 'live'; App.screen = 'setup'; rebuild(); renderAll();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  const layer = document.getElementById('layer');
+  if (e.target === layer) { closePop(); return; }
+  const t = e.target.closest('button'); if (!t) return;
+  const d = t.dataset, st = active();
+  // --- 設定・ログイン
+  if (t.id === 'goDemo') { startDemo(); renderAll(); toast('デモを始めました（サンプルのデータ）'); return; }
+  if (t.id === 'cfgScan') { App.setupScan = true; App.setupError = ''; renderAll(); startSetupCamera(); return; }
+  if (t.id === 'cfgScanStop') { Scanner.stop(); App.setupScan = false; renderAll(); return; }
+  if (t.id === 'cfgLinkSave') {
+    if (!useSetup(document.getElementById('cfgLink').value)) { App.setupError = '設定用のリンクではないようです。「#setup=」を含むリンクを、全部そのまま貼り付けてください。'; renderAll(); }
+    return;
+  }
+  if (t.id === 'cfgSave') {
+    const api = document.getElementById('cfgApi').value.trim(), key = document.getElementById('cfgKey').value.trim();
+    if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(api) || key.length < 8) { App.setupError = 'URLは https://script.google.com/…/exec の形、合言葉は8文字以上です'; renderAll(); return; }
+    saveCfg({ api, key }); App.justConfigured = true; startLive(); return;
+  }
+  if (d.login) { App.loginName = d.login; App.pin = ''; App.loginError = ''; renderAll(); return; }
+  if (t.id === 'pickAgain') { App.loginName = ''; App.pin = ''; App.loginError = ''; renderAll(); return; }
+  if (d.pin) {
+    if (d.pin === 'del') App.pin = (App.pin || '').slice(0, -1);
+    else if (d.pin === 'ok') { doLogin(); return; }
+    else if ((App.pin || '').length < 8) App.pin = (App.pin || '') + d.pin;
+    App.loginError = ''; renderAll(); return;
+  }
+  if (t.id === 'resetCfg') { if (ui.pop) closePop(); resetConfig(); return; }
+  if (App.screen !== 'main') return;
+  // --- アプリ
+  if (d.tab) { ui.tab = d.tab; ui.pop = null; ui.reasonFor = null; ui.okAll = false; renderApp(); goTop(); if (d.tab === 'sheet') scrollSheetToBottom(); return; }
+  if (d.close) { closePop(); return; }
+  if (d.detail) { openDetail(d.detail); return; }
+  if (d.filter) { ui.filter = d.filter; document.getElementById('filters').innerHTML = filtersHTML(); document.getElementById('results').innerHTML = resultsHTML(); return; }
+  if (d.scan) { usePart(d.scan, '読み取りました'); return; }
+  if (d.goio) { const code = ui.pop.code; ui.io.kind = d.goio; closePop(); pickIO(code); goTop(); return; }
+  if (d.kind) { ui.io.kind = d.kind; ui.io.okNeg = false; renderApp(); return; }
+  if (d.pick) { if (ui.pop && ui.pop.type === 'scan') usePart(d.pick, '選びました'); else pickIO(d.pick); return; }
+  if (d.step) { ui.io.qty = String(Math.max(1, (Number(ui.io.qty) || 0) + Number(d.step))); const q = document.getElementById('ioqty'); if (q) q.value = ui.io.qty; refreshIO(); return; }
+  if (d.cstep) { ui.cin = String(Math.max(0, (Number(ui.cin) || 0) + Number(d.cstep))); refreshCnt(); return; }
+  if (d.cnt) { if (st) openCount(d.cnt); return; }
+  if (d.area) { ui.area = d.area; renderApp(); return; }
+  if (d.sv) { ui.stView = d.sv; ui.reasonFor = null; ui.okAll = false; renderApp(); return; }
+  if (d.recount) { busy(t, async () => { await adminCall('verdict', { code: d.recount, verdict: '再カウント' }); toast(`${d.recount}：数え直しを依頼しました`); }); return; }
+  if (d.okc) { ui.reasonFor = d.okc; renderApp(); return; }
+  if (d.reason) { const code = ui.reasonFor; busy(t, async () => { await adminCall('verdict', { code, verdict: 'OK', reason: d.reason }); ui.reasonFor = null; renderAll(); toast(`${code}：この数でOK（${d.reason}）`); }); return; }
+  if (d.allreason) { busy(t, async () => { const r = await adminCall('verdict', { all: true, verdict: 'OK', reason: d.allreason }); ui.okAll = false; renderAll(); toast(`${r.n}件をOKにしました（${d.allreason}）`); }); return; }
+  if (d.unok) { busy(t, async () => { await adminCall('verdict', { code: d.unok, verdict: '' }); }); return; }
+  if (d.scope) { const a = d.scope, sc = ui.start.scope || []; ui.start.scope = sc.includes(a) ? sc.filter(x => x !== a) : AREAS().filter(x => sc.includes(x) || x === a); renderApp(); return; }
+  if (d.hk) { ui.histKind = d.hk; renderApp(); return; }
+  if (d.undo) { openPop({ type: 'undo', id: d.undo }); return; }
+  if (d.reg) { const r = S.requests.find(x => x.id === d.reg); openPop({ type: 'newpart', code: r.code, reqId: r.id }); return; }
+  if (d.dropbad) { App.rejected.splice(Number(d.dropbad), 1); saveQueue(); renderAll(); return; }
+  if (d.demouser) { demoLogin(d.demouser); ui.pop = null; renderAll(); toast(`${d.demouser}さんでログインしました（デモ）`); return; }
+  if (d.sstab) { ui.ssTab = d.sstab; if (isWide()) renderSide(); else renderApp(); scrollSheetToBottom(); return; }
+  switch (t.id) {
+    case 'menu': openPop({ type: 'menu' }); return;
+    case 'scan': openPop({ type: 'scan', for: d.for }); startCamera(); return;
+    case 'torch': { const on = !t.classList.contains('on'); Scanner.torch(on).then(ok => { if (ok) t.classList.toggle('on', on); }); return; }
+    case 'scanNew': openPop({ type: 'newpart', code: ui.lastScan }); return;
+    case 'scanAsk': openPop({ type: 'ask', code: ui.lastScan }); return;
+    case 'clr': { ui.q = ''; const q = document.getElementById('q'); q.value = ''; q.focus(); t.hidden = true; document.getElementById('results').innerHTML = resultsHTML(); return; }
+    case 'chg': ui.io.code = ''; renderApp(); { const q = document.getElementById('pq'); if (q) q.focus(); } return;
+    case 'ioSave': {
+      const c = ioCheck(); if (!c.ok) return;
+      const op = addRecord(c.p.code, ui.io.kind, c.n, ui.io.memo.trim(), c.neg || c.big);
+      ui.newR.add(op.id);
+      Object.assign(ui.io, { code: '', qty: '1', memo: '', pq: '', okNeg: false, okBig: false });
+      afterLocal('記録');
+      toast(`${op.kind} ${c.p.code}：${signed(op.kind === '出庫' ? -c.n : c.n)}${c.p.unit}（在庫 ${c.now} → ${c.after}）${App.online ? '' : '・圏外のため保存'}`);
+      return;
+    }
+    case 'doUndo': { const op = cancelRecord(ui.pop.id); ui.pop = null; if (op) ui.newR.add(op.id); afterLocal('記録'); if (op) toast('取り消しました'); return; }
+    case 'zero': ui.cin = '0'; refreshCnt(); return;
+    case 'cntSave': {
+      const p = P(ui.pop.code); if (ui.cin === '') return;
+      const v = Number(ui.cin), op = addCount(p.code, v), nxt = nextToCount(p);
+      ui.newC.add(op.id); ui.ssTab = 'カウント'; renderApp(); renderSide(); scrollSheetToBottom();
+      const showBook = !active().blind || isBoss(), diff = v - op.estBook;
+      toast(`${p.shelf} ${p.code}：${v}${p.unit}を入力${showBook && diff ? `（帳簿と ${signed(diff)}）` : ''}${App.online ? '' : '・圏外のため保存'}`);
+      if (nxt) openCount(nxt.code); else closePop();
+      return;
+    }
+    case 'blind': busy(null, () => adminCall('blind', { blind: !st.blind })); return;
+    case 'startBlind': ui.start.blind = !ui.start.blind; renderApp(); return;
+    case 'doStart': {
+      const name = (document.getElementById('stName').value || '').trim() || '棚卸';
+      busy(t, async () => { await adminCall('start', { name, scope: ui.start.scope, blind: ui.start.blind }); ui.start = { name: '', scope: null, blind: true }; ui.stView = 'count'; ui.justFixed = null; afterLocal('棚卸'); goTop(); toast(`${name}を始めました`); });
+      return;
+    }
+    case 'okAll': ui.okAll = !ui.okAll; renderApp(); return;
+    case 'finalize': openPop({ type: 'fin' }); return;
+    case 'doFinalize': { const id = st.id; busy(t, async () => { const r = await adminCall('finalize', { stId: id }); ui.justFixed = id; ui.pop = null; ui.stView = 'count'; afterLocal('記録'); goTop(); toast(`確定しました。棚卸調整の行を${r.adjusted}行足しました`); }); return; }
+    case 'newPart': openPop({ type: 'newpart', code: ui.q.trim() }); return;
+    case 'askReg': openPop({ type: 'ask', code: ui.q.trim() }); return;
+    case 'openReq': openPop({ type: 'reqs' }); return;
+    case 'npSave': {
+      const g = id => document.getElementById(id).value.trim();
+      const part = { code: g('np-code'), name: g('np-name'), maker: g('np-maker'), cat: g('np-cat'), unit: document.getElementById('np-unit').value, shelf: g('np-shelf'), reorder: Number(g('np-reorder')) || 0, price: Number(g('np-price')) || 0, old: g('np-old') };
+      const reqId = ui.pop.reqId;
+      busy(t, async () => {
+        try { const r = await adminCall('addPart', { part, reqId }); ui.q = r.code; ui.ssTab = '部品'; renderAll(); openDetail(r.code); toast(`${r.code} を登録しました`); }
+        catch (err) { const box = document.getElementById('np-err'); if (box) box.innerHTML = `<div class="warn">${esc(err.message)}</div>`; throw err; }
+      });
+      return;
+    }
+    case 'askSave': {
+      const code = document.getElementById('ask-code').value.trim();
+      if (!code) { toast('部品番号を入れてください'); return; }
+      addRequest(code, Number(digits(document.getElementById('ask-qty'))) || 1, document.getElementById('ask-memo').value.trim());
+      ui.pop = null; afterLocal('登録依頼'); toast('責任者に登録を依頼しました'); return;
+    }
+    case 'net': case 'syncNow': busy(null, async () => { const n = pending(); await flush(); await refresh(); if (App.online) toast(n ? `${n}件を送り、最新にしました` : '最新にしました'); }); if (t.id === 'syncNow') closePop(); return;
+    case 'net2': App.online = !App.online; ui.pop = null; renderAll(); if (App.online) busy(null, async () => { const n = pending(); await flush(); toast(n ? `電波が戻りました。${n}件を送りました` : '電波が戻りました'); }); else toast('圏外になりました（入力はスマホに保存されます）'); return;
+    case 'logout':
+      if (App.mode === 'live' && pendingMine()) { toast(`未送信の入力が${pendingMine()}件あります。電波のある所で送ってからログアウトしてください`); return; }
+      closePop(); logout('ログアウトしました'); loadStaff(); return;
+    case 'demoReset': startDemo(); ui.pop = null; ui.newR.clear(); ui.newC.clear(); renderAll(); toast('デモを最初の状態に戻しました'); return;
+    case 'leaveDemo': ui.pop = null; App.mode = 'live'; App.screen = 'setup'; App.auth = null; App.snap = null; App.queue = []; rebuild(); renderAll(); return;
+  }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'okNeg') { ui.io.okNeg = t.checked; refreshIO(); }
+  if (t.id === 'okBig') { ui.io.okBig = t.checked; refreshIO(); }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'q') { ui.q = t.value; document.getElementById('clr').hidden = !ui.q; document.getElementById('results').innerHTML = resultsHTML(); }
+  if (t.id === 'pq') { ui.io.pq = t.value; document.getElementById('sugg').innerHTML = suggHTML(); }
+  if (t.id === 'sq') { const q = t.value.trim(); document.getElementById('ssugg').innerHTML = q ? search(q).slice(0, 6).map(x => `<button type="button" data-pick="${esc(x.p.code)}"><span><span class="pn">${highlight(x.p.code, q)}</span><small>${esc(x.p.shelf)}　${esc(x.p.name)}</small></span><span class="q">${x.p.stock}${esc(x.p.unit)}</span></button>`).join('') || `<div class="hint">「${esc(q)}」は見つかりません</div>` : ''; }
+  if (t.id === 'ioqty') { ui.io.qty = digits(t); refreshIO(); }
+  if (t.id === 'memo') ui.io.memo = t.value;
+  if (t.id === 'hq') { ui.histQ = t.value; document.getElementById('hlist').innerHTML = histListHTML(); }
+  if (t.id === 'cin') { ui.cin = digits(t, 6); refreshCnt(); }
+  if (t.id === 'stName') ui.start.name = t.value;
+  if (['np-reorder', 'np-price', 'ask-qty'].includes(t.id)) digits(t, 7);
+});
+document.addEventListener('keydown', e => {
+  const id = e.target.id;
+  if (e.key === 'Enter' && id === 'ioqty') { const b = document.getElementById('ioSave'); if (b && !b.disabled) b.click(); }
+  if (e.key === 'Enter' && id === 'cin') { const b = document.getElementById('cntSave'); if (b && !b.disabled) b.click(); }
+  if (e.key === 'Enter' && id === 'q') { e.preventDefault(); const r = search(ui.q.trim()); e.target.blur(); if (ui.q.trim() && r.length === 1) openDetail(r[0].p.code); }
+  if (e.key === 'Enter' && (id === 'pq' || id === 'sq')) { e.preventDefault(); const q = e.target.value.trim(), r = search(q); if (q && r.length === 1) { if (id === 'sq') usePart(r[0].p.code, '選びました'); else pickIO(r[0].p.code); } }
+  if (e.key === 'Escape' && ui.pop) closePop();
+});
+(WIDE.addEventListener ? WIDE.addEventListener.bind(WIDE, 'change') : WIDE.addListener.bind(WIDE))(() => { if (App.screen === 'main') { renderAll(); scrollSheetToBottom(); } });
+window.addEventListener('resize', () => { const b = document.getElementById('bar'); if (b) document.documentElement.style.setProperty('--bar-h', b.offsetHeight + 'px'); });
+window.addEventListener('online', () => { if (App.mode === 'live' && App.screen === 'main') flush(); if (App.screen === 'login') loadStaff(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && App.mode === 'live' && App.screen === 'main') { flush().then(() => refresh(true)); } });
+setInterval(() => { if (App.mode === 'live' && App.screen === 'main' && document.visibilityState === 'visible') { if (App.queue.length) flush(); else if (!App.online) refresh(true); } }, 20000);
+
+/* ---------- 起動 ---------- */
+function decodeCfg(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+// 設定用リンク（またはその一部）から { api, key } を取り出す。短い形「s.ID.合言葉」と、昔の形（JSONをbase64）の両方を読む
+function parseSetup(text) {
+  const m = String(text || '').match(/setup=([A-Za-z0-9_\-.]+)/); if (!m) return null;
+  const v = m[1], c = v.match(/^s\.([A-Za-z0-9_\-]+)\.([A-Za-z0-9]+)$/);
+  if (c) return { api: 'https://script.google.com/macros/s/' + c[1] + '/exec', key: c[2] };
+  try { const o = decodeCfg(v); return o && o.api && o.key ? { api: String(o.api), key: String(o.key) } : null; } catch (_) { return null; }
+}
+function saveCfg(cfg) {
+  const old = LS.get(K.cfg, null);
+  if (!old || old.api !== cfg.api || old.key !== cfg.key) { [K.auth, K.snap, K.staff].forEach(LS.del); }
+  LS.set(K.cfg, { api: cfg.api, key: cfg.key });
+}
+function startLive() {
+  App.cfg = LS.get(K.cfg, null);
+  if (!App.cfg) { App.screen = 'setup'; renderAll(); return; }
+  App.mode = 'live'; App.setupError = ''; App.setupScan = false;
+  App.auth = LS.get(K.auth, null); App.snap = LS.get(K.snap, null); App.queue = LS.get(K.queue, []); App.rejected = LS.get(K.rejected, []); App.staffCache = LS.get(K.staff, []);
+  App.online = navigator.onLine !== false;
+  rebuild();
+  if (!App.auth) { App.screen = 'login'; renderAll(); loadStaff(); if (App.justConfigured) toast('このスマホの設定ができました。名前を選んでください'); return; }
+  App.screen = 'main'; renderAll(); flush().then(() => refresh(true));
+}
+function useSetup(text) { // アプリの中で読んだQR・貼り付けたリンク
+  const cfg = parseSetup(text);
+  if (!cfg) return false;
+  Scanner.stop(); saveCfg(cfg); App.justConfigured = true; startLive(); return true;
+}
+async function startSetupCamera() {
+  const video = document.getElementById('cam'), msg = document.getElementById('cammsg');
+  if (!video) return;
+  if (!Scanner.available()) { document.getElementById('camwrap').classList.add('nocam'); msg.textContent = 'この画面ではカメラが使えません。下の「リンクを貼り付ける」を使ってください。'; return; }
+  try { await Scanner.start(video, onSetupScanned); msg.textContent = 'パソコンに出した設定用QRを枠の中に入れてください'; }
+  catch (e) { document.getElementById('camwrap').classList.add('nocam'); msg.textContent = e && e.name === 'NotAllowedError' ? 'カメラの使用が許可されていません。設定でカメラを「許可」にするか、下の「リンクを貼り付ける」を使ってください。' : 'カメラを開けませんでした。下の「リンクを貼り付ける」を使ってください。'; }
+}
+function onSetupScanned(text) {
+  if (useSetup(text)) return;
+  const msg = document.getElementById('cammsg'); if (msg) msg.textContent = 'これは設定用のQRではありません（部品のラベルなど）。パソコンの「スマホの設定用QR」を読んでください';
+  setTimeout(() => { if (App.screen === 'setup' && App.setupScan) startSetupCamera(); }, 1800);
+}
+function boot() {
+  if (/setup=/.test(location.hash)) {
+    const cfg = parseSetup(location.hash);
+    if (cfg) { saveCfg(cfg); App.justConfigured = true; }
+    else App.setupError = '設定用のQR（リンク）が読めませんでした。もう一度読んでください。';
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {}
+  }
+  const params = new URLSearchParams(location.search);
+  if (params.has('demo') || window.BUHIN_DEMO) { startDemo(); renderAll(); return; }
+  if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js').catch(() => {}); }
+  startLive();
+}
+window.addEventListener('hashchange', () => { if (/#setup=/.test(location.hash)) location.reload(); }); // 設定用リンクを、アプリを開いたまま開いたとき
+boot();
+
+</script>
+</body>
+</html>

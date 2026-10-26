@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f8b8d">
+<title>QRラベル印刷</title>
+<style>
+:root{--ink:#1b2533;--sub:#536177;--line:#d5dde6;--bg:#eef2f6;--card:#fff;--accent:#0f8b8d;--accent-bg:#e4f4f4;--warn:#9a3412;--warn-bg:#fff1e6;
+  --font:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic","Meiryo",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Noto Sans Mono CJK JP",monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.6}
+.wrap{display:grid;grid-template-columns:360px minmax(0,1fr);gap:20px;max-width:1300px;margin:0 auto;padding:20px 16px 40px;align-items:start}
+@media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;position:sticky;top:16px}
+h1{margin:0 0 2px;font-size:20px}
+.lead{margin:0 0 12px;color:var(--sub);font-size:13px}
+label.h{display:block;font-weight:700;font-size:13px;margin:12px 0 4px}
+textarea{width:100%;min-height:180px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:13px/1.5 var(--mono);resize:vertical}
+select,input[type=number]{border:1px solid var(--line);border-radius:8px;min-height:38px;padding:0 8px;font:inherit;background:#fff}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row input[type=number]{width:72px}
+button{font:inherit;cursor:pointer}
+.btn{border:0;background:var(--accent);color:#fff;border-radius:10px;min-height:46px;padding:0 18px;font-weight:800;font-size:15px;width:100%;margin-top:14px}
+.btn2{border:1px solid var(--line);background:#fff;border-radius:8px;min-height:34px;padding:0 10px;font-size:12px;font-weight:700;color:var(--sub)}
+.stat{margin-top:10px;font-size:13px;font-weight:700}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:6px 10px;font-size:12px;margin-top:6px}
+details{margin-top:10px;font-size:13px}
+details summary{cursor:pointer;font-weight:700;color:var(--sub)}
+.tips{font-size:12px;color:var(--sub);margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+.tips b{color:var(--ink)}
+.preview{min-width:0;overflow-x:auto}
+.pages{display:flex;flex-direction:column;gap:16px;align-items:flex-start;zoom:.62}
+@media (max-width:860px){.pages{zoom:.42}}
+/* ---------- A4の紙（mmで正確に） ---------- */
+.page{width:210mm;height:297mm;background:#fff;position:relative;box-shadow:0 4px 18px rgba(20,30,45,.18);overflow:hidden;flex:none}
+.lab{position:absolute;display:flex;align-items:center;gap:2.5mm;padding:0 3mm;overflow:hidden;color:#111}
+.lab.guide{outline:0.2mm dashed #c8d0da;outline-offset:-0.1mm}
+.lab.skip{background:repeating-linear-gradient(45deg,#f3f5f8,#f3f5f8 2mm,#fff 2mm,#fff 4mm)}
+.lab svg{flex:none;display:block}
+.lab .t{min-width:0;display:flex;flex-direction:column;gap:0.6mm}
+.lab .pn{font-family:var(--mono);font-weight:800;line-height:1.1;word-break:break-all}
+.lab .nm{font-size:3.1mm;line-height:1.25;max-height:7.8mm;overflow:hidden}
+.lab .sh{font-family:var(--mono);font-weight:800;font-size:3.4mm}
+.lab .sh span{font-family:var(--font);font-weight:700;font-size:2.6mm;color:#444;margin-right:1mm}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  .panel,.noprint{display:none!important}
+  .wrap{display:block;padding:0;max-width:none}
+  .pages{zoom:1;gap:0}
+  .page{box-shadow:none;page-break-after:always;break-after:page}
+  .page:last-child{page-break-after:auto;break-after:auto}
+  .lab.guide{outline:0}
+  .lab.skip{background:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+    <h1>QRラベル印刷</h1>
+    <p class="lead">部品シートの行を貼り付けると、A4のラベル用紙に印刷できる形に並べます。データはこのパソコンの中だけで処理し、どこにも送りません。<a href="./">アプリに戻る</a></p>
+    <label class="h" for="src">部品の一覧（スプレッドシートからコピーして貼り付け）</label>
+    <textarea id="src" spellcheck="false" placeholder="部品番号	部品名	…	棚番&#10;10200-11010	部品A	…	A-01"></textarea>
+    <div class="row" style="margin-top:6px"><button type="button" class="btn2" id="sample">例を入れる</button><button type="button" class="btn2" id="clear">消す</button></div>
+    <div class="stat" id="stat"></div><div id="warns"></div>
+    <label class="h" for="layout">ラベル用紙</label>
+    <select id="layout" style="width:100%"></select>
+    <div class="row" style="margin-top:10px">
+      <label for="start">何枚目から</label><input type="number" id="start" min="1" value="1">
+      <label for="copies">1部品につき</label><input type="number" id="copies" min="1" max="10" value="1"><span>枚</span>
+    </div>
+    <details><summary>印刷のずれを直す（mm）</summary>
+      <div class="row" style="margin-top:8px"><label for="dx">右へ</label><input type="number" id="dx" step="0.5" value="0"><label for="dy">下へ</label><input type="number" id="dy" step="0.5" value="0"></div>
+      <div class="row" style="margin-top:8px"><label><input type="checkbox" id="guide" checked> 画面にラベルの枠を表示</label></div>
+    </details>
+    <button type="button" class="btn" id="print">印刷する</button>
+    <div class="tips"><b>印刷のしかた（Chrome）</b>：倍率 100%（「実際のサイズ」）・余白「なし」で印刷します。最初は普通紙に印刷し、ラベル用紙に重ねてずれを確かめてください。<br><b>貼り付け方</b>：部品シートで見出しの行ごと選んでコピーすると、「部品番号」「部品名」「棚番」の列を自動で見つけます。見出しがないときは、1列目＝部品番号、2列目＝部品名、3列目＝棚番として読みます。</div>
+  </div>
+  <div class="preview"><div class="pages" id="pages"></div></div>
+</div>
+<script>
+/* ---------- QRコード生成（バイトモード・誤り訂正L/M/Q/H（標準はM）・型番1〜10）。外部ライブラリなしで本物のQRを作る ---------- */
+const QR = (() => {
+  // 型番1〜10 × 誤り訂正 L/M/Q/H：[ブロックごとの訂正語数, [[ブロック数, データ語数], ...]]
+  const TABLE = [null,
+    { L: [7, [[1, 19]]], M: [10, [[1, 16]]], Q: [13, [[1, 13]]], H: [17, [[1, 9]]] },
+    { L: [10, [[1, 34]]], M: [16, [[1, 28]]], Q: [22, [[1, 22]]], H: [28, [[1, 16]]] },
+    { L: [15, [[1, 55]]], M: [26, [[1, 44]]], Q: [18, [[2, 17]]], H: [22, [[2, 13]]] },
+    { L: [20, [[1, 80]]], M: [18, [[2, 32]]], Q: [26, [[2, 24]]], H: [16, [[4, 9]]] },
+    { L: [26, [[1, 108]]], M: [24, [[2, 43]]], Q: [18, [[2, 15], [2, 16]]], H: [22, [[2, 11], [2, 12]]] },
+    { L: [18, [[2, 68]]], M: [16, [[4, 27]]], Q: [24, [[4, 19]]], H: [28, [[4, 15]]] },
+    { L: [20, [[2, 78]]], M: [18, [[4, 31]]], Q: [18, [[2, 14], [4, 15]]], H: [26, [[4, 13], [1, 14]]] },
+    { L: [24, [[2, 97]]], M: [22, [[2, 38], [2, 39]]], Q: [22, [[4, 18], [2, 19]]], H: [26, [[4, 14], [2, 15]]] },
+    { L: [30, [[2, 116]]], M: [22, [[3, 36], [2, 37]]], Q: [20, [[4, 16], [4, 17]]], H: [24, [[4, 12], [4, 13]]] },
+    { L: [18, [[2, 68], [2, 69]]], M: [26, [[4, 43], [1, 44]]], Q: [24, [[6, 19], [2, 20]]], H: [28, [[6, 15], [2, 16]]] },
+  ];
+  const ECL_BITS = { L: 1, M: 0, Q: 3, H: 2 };
+  const ALIGN = [[], [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
+
+  function gfMul(x, y) {
+    let z = 0;
+    for (let i = 7; i >= 0; i--) { z = (z << 1) ^ ((z >>> 7) * 0x11D); z ^= ((y >>> i) & 1) * x; }
+    return z & 0xFF;
+  }
+  function rsDivisor(degree) {
+    const r = new Array(degree).fill(0); r[degree - 1] = 1;
+    let root = 1;
+    for (let i = 0; i < degree; i++) {
+      for (let j = 0; j < r.length; j++) { r[j] = gfMul(r[j], root); if (j + 1 < r.length) r[j] ^= r[j + 1]; }
+      root = gfMul(root, 0x02);
+    }
+    return r;
+  }
+  function rsRemainder(data, div) {
+    const r = div.map(() => 0);
+    for (const b of data) {
+      const f = b ^ r.shift(); r.push(0);
+      div.forEach((c, i) => { r[i] ^= gfMul(c, f); });
+    }
+    return r;
+  }
+  function utf8(text) {
+    const out = [];
+    for (const ch of String(text)) {
+      let c = ch.codePointAt(0);
+      if (c < 0x80) out.push(c);
+      else if (c < 0x800) out.push(0xC0 | (c >> 6), 0x80 | (c & 63));
+      else if (c < 0x10000) out.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+      else out.push(0xF0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    }
+    return out;
+  }
+  const dataCap = (v, e) => TABLE[v][e][1].reduce((a, [n, d]) => a + n * d, 0);
+
+  function encode(text, ecl = 'M', minVersion = 1) {
+    const bytes = utf8(text);
+    let ver = Math.max(1, Math.min(10, minVersion));
+    for (; ver <= 10; ver++) {
+      const ccBits = ver < 10 ? 8 : 16;
+      if (4 + ccBits + bytes.length * 8 <= dataCap(ver, ecl) * 8) break;
+    }
+    if (ver > 10) throw new Error('QR: 文字が長すぎます');
+    // ---- bit stream
+    const bits = [];
+    const put = (val, len) => { for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1); };
+    put(4, 4); put(bytes.length, ver < 10 ? 8 : 16); bytes.forEach(b => put(b, 8));
+    const capBits = dataCap(ver, ecl) * 8;
+    put(0, Math.min(4, capBits - bits.length));
+    while (bits.length % 8) bits.push(0);
+    const data = [];
+    for (let i = 0; i < bits.length; i += 8) data.push(bits.slice(i, i + 8).reduce((a, b) => (a << 1) | b, 0));
+    for (let p = 0xEC; data.length < dataCap(ver, ecl); p ^= 0xEC ^ 0x11) data.push(p);
+    // ---- error correction + interleave
+    const [ecl_n, groups] = TABLE[ver][ecl], div = rsDivisor(ecl_n), blocks = [];
+    let k = 0;
+    groups.forEach(([n, d]) => { for (let i = 0; i < n; i++) { const dat = data.slice(k, k + d); k += d; blocks.push({ dat, ecc: rsRemainder(dat, div) }); } });
+    const cw = [], maxD = Math.max(...blocks.map(x => x.dat.length));
+    for (let i = 0; i < maxD; i++) blocks.forEach(x => { if (i < x.dat.length) cw.push(x.dat[i]); });
+    for (let i = 0; i < ecl_n; i++) blocks.forEach(x => cw.push(x.ecc[i]));
+    // ---- matrix
+    const size = ver * 4 + 17;
+    const mod = Array.from({ length: size }, () => new Array(size).fill(false));
+    const fn = Array.from({ length: size }, () => new Array(size).fill(false));
+    const setF = (x, y, d) => { mod[y][x] = d; fn[y][x] = true; };
+    for (let i = 0; i < size; i++) { setF(6, i, i % 2 === 0); setF(i, 6, i % 2 === 0); }
+    const finder = (cx, cy) => {
+      for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
+        const x = cx + dx, y = cy + dy;
+        if (x < 0 || y < 0 || x >= size || y >= size) continue;
+        const d = Math.max(Math.abs(dx), Math.abs(dy));
+        setF(x, y, d !== 2 && d !== 4);
+      }
+    };
+    finder(3, 3); finder(size - 4, 3); finder(3, size - 4);
+    const al = ALIGN[ver], last = al.length - 1;
+    al.forEach((ay, i) => al.forEach((ax, j) => {
+      if ((i === 0 && j === 0) || (i === 0 && j === last) || (i === last && j === 0)) return;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) setF(ax + dx, ay + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+    }));
+    const drawFormat = mask => {
+      const d = (ECL_BITS[ecl] << 3) | mask;
+      let rem = d;
+      for (let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+      const b = ((d << 10) | rem) ^ 0x5412, g = i => ((b >>> i) & 1) === 1;
+      for (let i = 0; i <= 5; i++) setF(8, i, g(i));
+      setF(8, 7, g(6)); setF(8, 8, g(7)); setF(7, 8, g(8));
+      for (let i = 9; i < 15; i++) setF(14 - i, 8, g(i));
+      for (let i = 0; i < 8; i++) setF(size - 1 - i, 8, g(i));
+      for (let i = 8; i < 15; i++) setF(8, size - 15 + i, g(i));
+      setF(8, size - 8, true);
+    };
+    drawFormat(0);
+    if (ver >= 7) {
+      let rem = ver;
+      for (let i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1F25);
+      const b = (ver << 12) | rem;
+      for (let i = 0; i < 18; i++) {
+        const c = ((b >>> i) & 1) === 1, a = size - 11 + i % 3, bb = Math.floor(i / 3);
+        setF(a, bb, c); setF(bb, a, c);
+      }
+    }
+    // ---- place codewords (zigzag)
+    let bi = 0;
+    for (let right = size - 1; right >= 1; right -= 2) {
+      if (right === 6) right = 5;
+      for (let v = 0; v < size; v++) for (let j = 0; j < 2; j++) {
+        const x = right - j, up = ((right + 1) & 2) === 0, y = up ? size - 1 - v : v;
+        if (!fn[y][x] && bi < cw.length * 8) { mod[y][x] = ((cw[bi >>> 3] >>> (7 - (bi & 7))) & 1) === 1; bi++; }
+      }
+    }
+    // ---- choose mask with the lowest penalty
+    const maskFn = [
+      (x, y) => (x + y) % 2 === 0, (x, y) => y % 2 === 0, (x, y) => x % 3 === 0, (x, y) => (x + y) % 3 === 0,
+      (x, y) => (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0, (x, y) => x * y % 2 + x * y % 3 === 0,
+      (x, y) => (x * y % 2 + x * y % 3) % 2 === 0, (x, y) => ((x + y) % 2 + x * y % 3) % 2 === 0];
+    const applyMask = m => { for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (!fn[y][x] && maskFn[m](x, y)) mod[y][x] = !mod[y][x]; };
+    const penalty = () => {
+      let p = 0;
+      const line = get => {
+        let run = 1, s = 0, prev = get(0);
+        for (let i = 1; i < size; i++) { const c = get(i); if (c === prev) { run++; if (run === 5) s += 3; else if (run > 5) s++; } else { run = 1; prev = c; } }
+        const str = Array.from({ length: size }, (_, i) => get(i) ? '1' : '0').join('');
+        for (let i = 0; i + 7 <= size; i++) if (str.substr(i, 7) === '1011101') {
+          const before = str.substr(Math.max(0, i - 4), Math.min(4, i)), after = str.substr(i + 7, 4);
+          if ((i < 4 || before === '0000') || (i + 11 > size || after === '0000')) s += 40;
+        }
+        return s;
+      };
+      for (let y = 0; y < size; y++) p += line(i => mod[y][i]);
+      for (let x = 0; x < size; x++) p += line(i => mod[i][x]);
+      for (let y = 0; y < size - 1; y++) for (let x = 0; x < size - 1; x++) {
+        const c = mod[y][x]; if (c === mod[y][x + 1] && c === mod[y + 1][x] && c === mod[y + 1][x + 1]) p += 3;
+      }
+      let dark = 0; mod.forEach(r => r.forEach(c => { if (c) dark++; }));
+      p += Math.floor(Math.abs(dark * 20 - size * size * 10) / (size * size)) * 10;
+      return p;
+    };
+    let best = 0, bestP = Infinity;
+    for (let m = 0; m < 8; m++) {
+      applyMask(m); drawFormat(m);
+      const pn = penalty(); if (pn < bestP) { bestP = pn; best = m; }
+      applyMask(m);
+    }
+    applyMask(best); drawFormat(best);
+    return { size, modules: mod, version: ver, mask: best, ecl };
+  }
+
+  // SVG（横に続く黒をまとめて1本のパスに）。margin は白い余白（モジュール数）
+  function svg(text, opt = {}) {
+    const { margin = 4, dark = '#000', light = '#fff', cls = '', label = '', ecl = 'M', minVersion = 1 } = opt;
+    const q = encode(text, ecl, minVersion), n = q.size + margin * 2;
+    let d = '';
+    q.modules.forEach((row, y) => {
+      for (let x = 0; x < q.size; x++) {
+        if (!row[x]) continue;
+        let w = 1; while (x + w < q.size && row[x + w]) w++;
+        d += `M${x + margin} ${y + margin}h${w}v1h-${w}z`; x += w - 1;
+      }
+    });
+    return `<svg ${cls ? `class="${cls}" ` : ''}viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" role="img" aria-label="${label || 'QRコード'}"><rect width="${n}" height="${n}" fill="${light}"/><path d="${d}" fill="${dark}"/></svg>`;
+  }
+  return { encode, svg };
+})();
+if (typeof module !== 'undefined') module.exports = QR;
+
+const LAYOUTS = [
+  { id: 'a24', name: '24面（3列×8段・70×37.1mm・余白なし）', cols: 3, rows: 8, w: 70, h: 37.125, top: 0, left: 0, gx: 0, gy: 0, qr: 24, pn: 4.6 },
+  { id: 'b24', name: '24面（3列×8段・70×33.9mm・上下に余白）', cols: 3, rows: 8, w: 70, h: 33.9, top: 12.9, left: 0, gx: 0, gy: 0, qr: 22, pn: 4.4 },
+  { id: 'c12', name: '12面（2列×6段・86.4×42.3mm）', cols: 2, rows: 6, w: 86.4, h: 42.3, top: 21.6, left: 18.6, gx: 0, gy: 0, qr: 28, pn: 5.4 },
+  { id: 'd44', name: '44面（4列×11段・48.3×25.4mm・小さめ）', cols: 4, rows: 11, w: 48.3, h: 25.4, top: 8.8, left: 8.4, gx: 0, gy: 0, qr: 18, pn: 3.2 },
+];
+const SAMPLE = `部品番号\t部品名\tメーカー\t分類\t単位\t棚番
+10200-11010\t部品A\tメーカーA\tフィルター\t個\tA-01
+10200-11020\t部品B\tメーカーA\tフィルター\t個\tA-02
+10200-11030\t部品C\tメーカーA\tフィルター\t個\tA-03
+AB-1203-01\t部品D\tメーカーB\tベルト\t本\tA-04
+AB-1203-02\t部品E\tメーカーB\tベルト\t本\tA-05
+AB-1210\t部品F\tメーカーB\tベルト\t本\tA-06
+K1-2210\t部品G\tメーカーC\tボルト類\t個\tA-07
+K1-2215\t部品H\tメーカーC\tボルト類\t個\tA-08
+K1-3301\t部品I\tメーカーC\tボルト類\tセット\tB-01
+55011-80720\t部品J\tメーカーA\tシール類\t個\tB-02
+55011-80730\t部品K\tメーカーA\tシール類\t個\tB-03
+5T051-1234\t部品L\tメーカーD\t電装\t個\tB-04
+5T051-1240\t部品M\tメーカーD\t電装\t個\tB-05
+X-0045\t部品N\tメーカーE\t電装\t個\tB-06
+X-0046\t部品O\tメーカーE\t電装\t個\tB-07
+2200A-001\t部品P\tメーカーF\t駆動系\t個\tB-08
+2200A-002\t部品Q\tメーカーF\t駆動系\t個\tC-01
+2200A-010\t部品R\tメーカーF\t駆動系\tセット\tC-02
+OL-15W40-4\t部品S\tメーカーG\tオイル類\t缶\tC-03
+OL-80W90-1\t部品T\tメーカーG\tオイル類\t缶\tC-04
+GR-400\t部品U\tメーカーG\tオイル類\t本\tC-05
+PN-0805\t部品V\tメーカーC\t小物\t袋\tC-06
+PN-1008\t部品W\tメーカーC\t小物\t袋\tC-07
+CL-3320-A\t部品X\tメーカーB\t小物\t個\tC-08`;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const norm = s => String(s ?? '').normalize('NFKC').toUpperCase().replace(/[\s\-‐‑‒–—―ーｰ－_.\/・]/g, '');
+$('layout').innerHTML = LAYOUTS.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+
+function parse(text) {
+  const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim() !== '');
+  if (!lines.length) return { items: [], warns: [] };
+  const split = l => (l.includes('\t') ? l.split('\t') : l.split(',')).map(x => x.trim().replace(/^"(.*)"$/, '$1'));
+  let ci = 0, ni = 1, si = 2, start = 0;
+  const h = split(lines[0]);
+  if (h.includes('部品番号')) {
+    ci = h.indexOf('部品番号'); ni = h.indexOf('部品名'); si = h.indexOf('棚番'); start = 1;
+  }
+  const items = [], warns = [], seen = {};
+  lines.slice(start).forEach((l, k) => {
+    const c = split(l), code = (c[ci] || '').trim();
+    if (!code) { warns.push(`${k + 1 + start}行目：部品番号が空なので飛ばしました`); return; }
+    if (code.length > 60) { warns.push(`${code.slice(0, 20)}…：番号が長すぎるので飛ばしました`); return; }
+    const n = norm(code);
+    if (seen[n]) warns.push(`${code}：${seen[n]} と同じ番号です（重複）`); else seen[n] = code;
+    items.push({ code, name: ni >= 0 ? (c[ni] || '') : '', shelf: si >= 0 ? (c[si] || '') : '' });
+  });
+  return { items, warns };
+}
+
+function render() {
+  const L = LAYOUTS.find(l => l.id === $('layout').value), per = L.cols * L.rows;
+  const { items, warns } = parse($('src').value);
+  const copies = Math.min(10, Math.max(1, parseInt($('copies').value, 10) || 1));
+  const start = Math.min(per, Math.max(1, parseInt($('start').value, 10) || 1));
+  $('start').max = per;
+  const dx = Number($('dx').value) || 0, dy = Number($('dy').value) || 0, guide = $('guide').checked;
+  const list = []; items.forEach(it => { for (let i = 0; i < copies; i++) list.push(it); });
+  const slots = Array(start - 1).fill(null).concat(list);
+  const pages = Math.max(1, Math.ceil(slots.length / per));
+  const qrmm = L.qr * 0.85 > L.h - 4 ? L.h - 4 : L.qr * 0.85;
+  let html = '';
+  for (let p = 0; p < pages; p++) {
+    let labs = '';
+    for (let i = 0; i < per; i++) {
+      const it = slots[p * per + i], r = Math.floor(i / L.cols), c = i % L.cols;
+      const x = L.left + c * (L.w + L.gx) + dx, y = L.top + r * (L.h + L.gy) + dy;
+      const pos = `left:${x}mm;top:${y}mm;width:${L.w}mm;height:${L.h}mm`;
+      if (!it) { labs += `<div class="lab ${guide ? 'guide' : ''} ${p === 0 && i < start - 1 ? 'skip' : ''}" style="${pos}"></div>`; continue; }
+      const svg = QR.svg(it.code, { margin: 2, dark: '#000', light: '#fff', label: it.code, ecl: 'Q', minVersion: 2 }).replace('<svg ', `<svg width="${qrmm}mm" height="${qrmm}mm" `);
+      const fs = Math.max(2.6, Math.min(L.pn, (L.w - qrmm - 8) / Math.max(6, it.code.length) * 1.75));
+      labs += `<div class="lab ${guide ? 'guide' : ''}" style="${pos}" data-code="${esc(it.code)}">${svg}<div class="t"><div class="pn" style="font-size:${fs.toFixed(2)}mm">${esc(it.code)}</div>${it.name ? `<div class="nm">${esc(it.name)}</div>` : ''}${it.shelf ? `<div class="sh"><span>棚番</span>${esc(it.shelf)}</div>` : ''}</div></div>`;
+    }
+    html += `<div class="page">${labs}</div>`;
+  }
+  $('pages').innerHTML = html;
+  $('stat').textContent = items.length ? `${items.length}部品 × ${copies}枚 ＝ ${list.length}枚（A4 ${pages}ページ）` : '部品の一覧を貼り付けてください';
+  $('warns').innerHTML = warns.slice(0, 8).map(w => `<div class="warn">${esc(w)}</div>`).join('') + (warns.length > 8 ? `<div class="warn">ほか${warns.length - 8}件</div>` : '');
+  $('print').disabled = !items.length;
+}
+['src', 'layout', 'start', 'copies', 'dx', 'dy', 'guide'].forEach(id => $(id).addEventListener('input', render));
+$('layout').addEventListener('change', render);
+$('sample').addEventListener('click', () => { $('src').value = SAMPLE; render(); });
+$('clear').addEventListener('click', () => { $('src').value = ''; render(); $('src').focus(); });
+$('print').addEventListener('click', () => window.print());
+$('src').value = SAMPLE; render();
+</script>
+</body>
+</html>
